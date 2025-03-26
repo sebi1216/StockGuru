@@ -1,6 +1,6 @@
+package Stocks;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 
 public class StockDay {
     int day;
@@ -8,6 +8,10 @@ public class StockDay {
 
     public StockDay(int day) {
         this.day = day;
+    }
+
+    public ArrayList<Stock> getStocks() {
+        return stocks;
     }
 
     public Stock getStock (int ID) {

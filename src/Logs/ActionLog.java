@@ -1,3 +1,4 @@
+package Logs;
 public class ActionLog {
     int userID;
     int day;

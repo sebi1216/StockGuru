@@ -1,3 +1,4 @@
+package Logs;
 import java.util.ArrayList;
 
 public class ActionLogs {

@@ -1,6 +1,13 @@
+package User;
 import java.util.HashMap;
+import java.util.Map;
 
-public class User {
+import Logs.ActionLog;
+import Logs.ActionLogs;
+import Stocks.Stock;
+import Stocks.StockDay;
+
+public abstract class User {
     int ID;
     String username;
     int money = 1000;
@@ -8,6 +15,38 @@ public class User {
 
     public User(int ID, String username) {
         this.username = username;
+    }
+
+    public int getID() {
+        return ID;
+    }
+
+    public void setID(int iD) {
+        ID = iD;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public int getMoney() {
+        return money;
+    }
+
+    public void setMoney(int money) {
+        this.money = money;
+    }
+
+    public HashMap<Integer, Integer> getStockPortfolio() {
+        return stockPortfolio;
+    }
+
+    public void setStockPortfolio(HashMap<Integer, Integer> stockPortfolio) {
+        this.stockPortfolio = stockPortfolio;
     }
 
     public void buyStock (int stockID,String name, int amount, double course, ActionLogs actionLogs, int day) {
@@ -25,6 +64,7 @@ public class User {
     }
 
     public void sellStock (int stockID, int amount, double course, ActionLogs actionLogs, int day) {
+        if (amount == 0) {return;}
         if (stockPortfolio.containsKey(stockID) && stockPortfolio.get(stockID) >= amount) {
             money += amount * course;
             stockPortfolio.put(stockID, stockPortfolio.get(stockID) - amount);
@@ -33,20 +73,19 @@ public class User {
         }
     }
 
-    public void sellAllStocks (ActionLogs actionLogs, int day) {
+    public void sellAllStocks (ActionLogs actionLogs, int day,StockDay stockDay) {
         for (int stockID : stockPortfolio.keySet()) {
-            Stock stock = new Stock(stockID, 0, 0);
-            sellStock(stockID, stockPortfolio.get(stockID), stock.course, actionLogs, day);
+            Stock stock = stockDay.getStock(stockID);
+            sellStock(stockID, stockPortfolio.get(stockID), stock.getCourse(), actionLogs, day);
         }
         System.out.println("All stocks sold new Balance: " + money + "$");
-
     }
 
     public void evaluateSellOptions(StockDay today, ActionLogs actionLogs, HashMap<Integer, Object[]> stocksMap, int day) {
         for (int stockID : stockPortfolio.keySet()) {
             Stock stock = today.getStock(stockID);
             if (stock != null) {
-                double currentPrice = stock.course;
+                double currentPrice = stock.getCourse();
                 double avgEntryPrice = actionLogs.getAvgEntryPrice(ID, stockID, day);
                 int stockAmount = stockPortfolio.get(stockID);
                 String stockName = stocksMap.get(stockID)[1].toString();
@@ -62,5 +101,20 @@ public class User {
                 }
             }
         }
+    }
+
+    public double getInvestedValue(StockDay today) {
+        double investedValue = 0.0;
+    
+        for (Map.Entry<Integer, Integer> entry : getStockPortfolio().entrySet()) {
+            int stockID = entry.getKey();
+            int stockAmount = entry.getValue();
+            Stock stock = today.getStock(stockID);
+    
+            if (stock != null) {
+                investedValue += stockAmount * stock.getCourse();
+            }
+        }
+        return investedValue;
     }
 }
