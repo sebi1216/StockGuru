@@ -1,4 +1,6 @@
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 
 public class StockDay {
     int day;
@@ -20,6 +22,15 @@ public class StockDay {
     public void addStock(Stock stock) {
         if (stock != null) {
             stocks.add(stock);
+        }
+    }
+
+    public void userCanBuy(double money, HashMap<Integer, Object[]> stocksMap) {
+        for (Stock stock : stocks) {
+            if (stock.course <= money) {
+                int maxQuantity = (int) (money / stock.course);
+                System.out.println("You can buy " + stocksMap.get(stock.ID)[1].toString() + " for " + stock.course + "$ each. Maximum quantity: " + maxQuantity);
+            }
         }
     }
 

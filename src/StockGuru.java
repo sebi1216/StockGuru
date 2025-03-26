@@ -12,9 +12,11 @@ public class StockGuru {
     static Users users = new Users();                       // All Users
     static HashMap<Integer, Object[]> stocksMap = new HashMap<>(); // ID, [StockAbbr, StockName]
     static HashMap<String, Integer> abbrMap = new HashMap<>(); // Reverse lookup for stock abbreviation
+    
 
     final static int days = 10;
     static int day = 0;
+    static StockDay today = stockDaysAll.getStockDay(day);
 
     // File paths
     private static final String NAMINGS_FILE = "lib/Namings.csv";
@@ -58,35 +60,54 @@ public class StockGuru {
         // displayFinalInfo(user);
     }
 
+    // Begin of Day Message will be displayed once
     public static void beginOfDay(User user) {
-        System.out.println("Data is being loaded...");
+        System.out.println("New Day Data is being loaded...");
         updateStockData(user);
         System.out.println("Data loaded!");
         System.out.printf("%nYour stock portfolio:%n");
-        System.out.printf("%-67s | %-65s %n", "Available Stocks    |    Day: " + day, "Portfolio of " + user.username + "  |  Balance: " + user.money + "$");
-        System.out.printf("%-5s %-5s %-30s %-13s %-10s | %-7s %-7s %-7s%n", "ID", "Abbr.", "Name", "Course", "Volume", "Amount", "Value", "Avg. Entry");
+        System.out.printf("%-77s | %-65s %n", "Available Stocks    |    Day: " + day, "Portfolio of " + user.username + "  |  Balance: " + user.money + "$");
+        System.out.printf("%-5s %-5s %-30s %-9s %-13s %-10s | %-7s %-10s %-11s %-7s%n", "ID", "Abbr.", "Name", "Course", "Volume", "Diff"     , "Amount", "Value", "Avg. Entry", "Profit");
+        System.out.printf("%-5s %-5s %-30s %-9s %-13s %-10s | %-7s %-10s %-11s %-7s%n", ""  , ""     , ""    , ""      , "Total" , "Yesterday", ""      , ""     , ""          , "Total");
+
         System.out.println("--------------------------------------------------------------------------------------------------------------------------");
-    
-        StockDay stockDay = stockDaysAll.getStockDay(day);
-        for (Stock stock : stockDay.stocks) {
+
+        StockDay stocksYesterday = stockDaysAll.getStockDay(day - 1);
+        for (Stock stock : today.stocks) {
             int stockID = stock.ID;
             int userStockAmount = user.stockPortfolio.getOrDefault(stockID, 0);
-    
+        
+            // Get stock data
             String stockAbbr = stocksMap.get(stockID)[0].toString();
             String stockName = stocksMap.get(stockID)[1].toString();
             double stockCourse = stock.course;
+            String stockCourseString = String.format("%.2f$", stockCourse);
             long stockVolume = stock.volume;
-    
-            // If the user doesn't own the stock, display empty values
+        
+            // Handle case where stocksYesterday is null
+            double perStockChange = 0;
+            if (stocksYesterday != null) {
+                Stock stockY = stocksYesterday.getStock(stockID);
+                perStockChange = stockY == null ? 0 : ((stockCourse - stockY.course) / stockY.course) * 100;
+            }
+            String perStockChangeStr = perStockChange >= 0 ? "\u001B[32m+" + String.format("%.2f%%", perStockChange) + "\u001B[0m" : "\u001B[31m" + String.format("%.2f%%", perStockChange) + "\u001B[0m";
+        
+            // Get user stock data and calculate
             String userStockAmountStr = userStockAmount == 0 ? "" : String.valueOf(userStockAmount);
-            String userStockValueStr = userStockAmount == 0 ? "" : String.format("%.2f", userStockAmount * stockCourse);
-            double avgEntryPrice = actionLogs.getAvgEntryPrice(user.ID, stockID);
-            String userStockAvgEntryPrice = userStockAmount == 0 ? "" : String.format("%.2f", avgEntryPrice);
-            String userStockDiffPercentStr = userStockAmount == 0 || avgEntryPrice == 0 ? "" : String.format("%.2f%%", ((stockCourse - avgEntryPrice) / avgEntryPrice) * 100);
+            String userStockValueStr = userStockAmount == 0 ? "" : String.format("%.2f$", userStockAmount * stockCourse);
+            double avgEntryPriceToday = actionLogs.getAvgEntryPrice(user.ID, stockID, day);            
+            String userStockAvgEntryPrice = userStockAmount == 0 ? "" : String.format("%.2f$", avgEntryPriceToday);
+            double profitAmount = (stockCourse - avgEntryPriceToday) * userStockAmount;
+            String userProfitAmount = userStockAmount == 0 ? "" : 
+                (profitAmount >= 0 ? "\u001B[32m+" + String.format("%.2f$", profitAmount) + "\u001B[0m" : "\u001B[31m" + String.format("%.2f$", profitAmount) + "\u001B[0m");
             
-            System.out.printf("%-5s %-5s %-30s %-13.2f %-10d | %-7s %-7s %-7s %-7s%n",
-                stockID, stockAbbr, stockName, stockCourse, stockVolume,
-                userStockAmountStr, userStockValueStr, userStockAvgEntryPrice, userStockDiffPercentStr);
+            String userProfitAmountPer = userStockAmount == 0 || avgEntryPriceToday == 0 ? "" : 
+                (((stockCourse - avgEntryPriceToday) / avgEntryPriceToday) * 100 >= 0 ? 
+                    "\u001B[32m" + String.format("%.2f%%", ((stockCourse - avgEntryPriceToday) / avgEntryPriceToday) * 100) + "\u001B[0m" : 
+                    "\u001B[31m" + String.format("%.2f%%", ((stockCourse - avgEntryPriceToday) / avgEntryPriceToday) * 100) + "\u001B[0m");
+            
+            System.out.printf("%-5s %-5s %-30s %-10s %-13d %-18s | %-7s %-10s %-11s %-7s %-7s%n",
+                stockID, stockAbbr, stockName, stockCourseString, stockVolume, perStockChangeStr, userStockAmountStr, userStockValueStr, userStockAvgEntryPrice, userProfitAmount, userProfitAmountPer);
         }
         System.out.println("--------------------------------------------------------------------------------------------------------------------------");
     }
@@ -127,34 +148,85 @@ public class StockGuru {
             e.printStackTrace();
         }
         stockDaysAll.addStockDay(stockDay);
+        today = stockDay;
     }
 
     public static void chooseStock(User user) {
+        ArrayList<Object[]> validInputs = new ArrayList<>();
         System.out.println("What would you like to do?");
-        System.out.println("1. Buy Stock");
-        System.out.println("2. Sell Stock");
-        System.out.println("3. End Day");
-        int choice = Integer.parseInt(getInput(1, List.of("1", "2", "3")));
+        
+        // Dynamically populate validInputs based on conditions
+        if (user.money > 0) {
+            validInputs.add(new Object[]{"Buy Stock", (Runnable) () -> buyStock(user)});
+        }
+        validInputs.add(new Object[]{"Show all Stocks I could buy", (Runnable) () -> today.userCanBuy(user.money, stocksMap)});
+        if (!user.stockPortfolio.isEmpty()) {
+            validInputs.add(new Object[]{"Sell Stock Options", (Runnable) () -> sellStockOptions(user)});
+        }
+        validInputs.add(new Object[]{"End Day", (Runnable) () -> System.out.println("Ending the day...")});
+    
+        // Display menu options dynamically
+        List<String> validChoices = new ArrayList<>();
+        for (int i = 0; i < validInputs.size(); i++) {
+            System.out.println((i + 1) + ". " + validInputs.get(i)[0]);
+            validChoices.add(String.valueOf(i + 1));
+        }
+
+        int choice = Integer.parseInt(getInput(1, validChoices));
+    
+        // Execute the corresponding action
+        Runnable action = (Runnable) validInputs.get(choice - 1)[1];
+        action.run();
+        if (choice != validInputs.size()) {
+            chooseStock(user);
+        }
+    }
+
+    public static void sellStockOptions(User user) {
+        user.evaluateSellOptions(today, actionLogs, stocksMap, day);
+        System.out.println("There are Multiple Options select what you want to do:");
+        System.out.println("1. Sell Specific Stock");
+        System.out.println("2. Sell All Stocks");
+
+        int choice = Integer.parseInt(getInput(1, List.of("1", "2", "3","4")));
         switch (choice) {
-            case 1 -> buyStock(user);
-            case 2 -> sellStock(user);
+            case 1 -> sellStock(user);
+            case 2 -> user.sellAllStocks(actionLogs, day);
         }
     }
 
     public static void buyStock(User user) {
         System.out.println("Which Stock would you like to buy? (Enter ID)");
         int stockID = Integer.parseInt(getInput(1, null));
-        System.out.println("How many stocks would you like to buy?");
-        int stockAmount = getInputStockBuy(user, stockID);
-        double stockCourse = stockDaysAll.getStockDay(day).getStock(stockID).course;
-        user.buyStock(stockID, stockAmount, stockCourse, actionLogs, day);
+        double stockCourse = today.getStock(stockID).course;
+        double userMoney = user.money;
+        String name = stocksMap.get(stockID)[1].toString();
+        int maxAmount = (int) (userMoney / stockCourse);
+    
+        if (maxAmount == 0) {
+            System.out.println("You don't have enough money to buy even 1 stock of " + name + "!");
+            return;
+        }
+    
+        System.out.println("You have " + userMoney + "$ available and can buy a Maximum amount of " + maxAmount + " stocks for a Total of " + maxAmount * stockCourse + "$.");
+        System.out.println("How many stocks would you like to buy? (0 to cancel)");
+        int stockAmount = getInputStockBuy(user, stockID, maxAmount);
+    
+        if (stockAmount == 0) {
+            return;
+        }
+    
+        user.buyStock(stockID, name, stockAmount, stockCourse, actionLogs, day);
     }
 
     public static void sellStock(User user) {
         System.out.println("Which Stock would you like to sell?");
         int stockID = Integer.parseInt(getInput(1, null));
-        System.out.println("How many stocks would you like to sell?");
+        System.out.println("How many stocks would you like to sell? (0 to cancel)");
         int stockAmount = getInputStockSell(user, stockID);
+        if (stockAmount == 0) {
+            return;
+        }
         double stockCourse = stockDaysAll.getStockDay(day).getStock(stockID).course;
         user.sellStock(stockID, stockAmount, stockCourse, actionLogs, day);
     }
@@ -165,18 +237,27 @@ public class StockGuru {
             int sellAmount = Integer.parseInt(getInput(1, null));
             if (sellAmount > stockAmount) {
                 System.out.println("You don't have that amount of stock in your portfolio!");
-            } else {
+            } else if ( sellAmount < 0) {
+                System.out.println("The amount of stocks must be positive!");
+            } else if (sellAmount == 0) {
+                System.out.println("We will not sell any stocks!");
+                return 0;
+            }else  {
                 return sellAmount;
             }
         }
     }
 
-    public static int getInputStockBuy(User user, int stockID) {
+    public static int getInputStockBuy(User user, int stockID, int maxAmount) {
         while (true) {
             int buyAmount = Integer.parseInt(getInput(1, null));
-            double stockCourse = stockDaysAll.getStockDay(day).getStock(stockID).course;
-            if (buyAmount * stockCourse > user.money) {
+            if (buyAmount > maxAmount) {
                 System.out.println("You don't have enough money to buy that amount of stocks!");
+            } else if (buyAmount < 0){ 
+                System.out.println("The amount of stocks must be positive!");
+            } else if (buyAmount == 0){
+                System.out.println("We will not buy any stocks!");
+                return 0;
             } else {
                 return buyAmount;
             }

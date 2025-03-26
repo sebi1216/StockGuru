@@ -13,20 +13,15 @@ public class ActionLogs {
         }
     }
 
-    public double getAvgEntryPrice(int userID, int stockID) {
+    public double getAvgEntryPrice(int userID, int stockID, int day) {
         double sum = 0;
         int count = 0;
         for (ActionLog log : Logs) {
-            System.out.println(log);
-            System.out.println(userID + " " + stockID);
-            if (log.userID == userID && log.stockID == stockID) {
-                sum += (log.course * log.amount);
-                count+= log.amount;
-                System.out.println(sum + " " + count);
+            if (log.userID == userID && log.stockID == stockID && log.day <= day) {
+                sum += log.course;
+                count++;
             }
         }
-        System.out.println(sum);
-        System.out.println(count);
         return sum / count;
 
     }
