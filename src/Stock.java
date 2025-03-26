@@ -1,11 +1,16 @@
 public class Stock {
-    String name;
+    int ID;
     double course;
-    int volume; 
+    long volume; 
 
-    public Stock(String name, double course, int volume) {
-        this.name = name;
+    public Stock(int ID, double course, long volume) {
+        this.ID = ID;
         this.course = course;
         this.volume = volume;
+    }
+
+    @Override
+    public String toString() {
+        return "Stock { ID=" + ID + "', course=" + course + ", volume=" + volume + " }";
     }
 }
