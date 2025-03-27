@@ -2,14 +2,14 @@ package Logs;
 import java.util.ArrayList;
 
 public class ActionLogs {
-    ArrayList<ActionLog> Logs = new ArrayList<ActionLog>();
+    ArrayList<BuySellLog> BuySellLogs = new ArrayList<BuySellLog>();
 
     /**
      * Constructor for the ActionLogs class.
      * Initializes an empty list of ActionLogs.
      */
     public ActionLogs() {
-        this.Logs = new ArrayList<>();
+        this.BuySellLogs = new ArrayList<>();
     }
 
     /**
@@ -17,9 +17,9 @@ public class ActionLogs {
      * @param log
      */
     public void addLog(int ID, int day, int stockID, int amount, double course) {
-        ActionLog log = new ActionLog(ID, day, stockID, amount, course);
+        BuySellLog log = new BuySellLog(ID, day, stockID, amount, course);
         if (log != null) {
-            Logs.add(log);
+            BuySellLogs.add(log);
         }
     }
 
@@ -33,7 +33,7 @@ public class ActionLogs {
     public double getAvgEntryPrice(int userID, int stockID, int day) {
         double sum = 0;
         int count = 0;
-        for (ActionLog log : Logs) {
+        for (BuySellLog log : BuySellLogs) {
             if (log.userID == userID && log.stockID == stockID && log.day <= day) {
                 sum += (log.course * log.amount);
                 count+= log.amount;

@@ -1,5 +1,5 @@
 package Logs;
-public class ActionLog {
+public class BuySellLog {
     int userID;
     int day;
     int stockID;
@@ -8,14 +8,14 @@ public class ActionLog {
     double money;
 
     /**
-     * Constructor for the ActionLog class.
+     * Constructor for the BuySellLog class.
      * @param userID
      * @param day
      * @param stockID
      * @param amount
      * @param course
      */
-    public ActionLog(int userID, int day, int stockID, int amount, double course) {
+    public BuySellLog(int userID, int day, int stockID, int amount, double course) {
         this.userID = userID;
         this.day = day;
         this.stockID = stockID;
@@ -24,7 +24,7 @@ public class ActionLog {
     }
 
     /**
-     * Override the toString method to return a string representation of the ActionLog object.
+     * Override the toString method to return a string representation of the BuySellLog object.
      */
     @Override
     public String toString() {

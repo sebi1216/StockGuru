@@ -125,7 +125,6 @@ public class StockGuru {
                 bot.autoTrade(stockDaysAll, actionLogs, day, stocksMap);
             } else {
                 user.evaluateSellOptions(today, actionLogs, stocksMap, day);
-
                 chooseStock(user);
             }
             day++;

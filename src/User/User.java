@@ -137,10 +137,10 @@ public abstract class User {
     
                 if (currentPrice < avgEntryPrice) {
                     double loss = stockAmount * (avgEntryPrice - currentPrice);
-                    System.out.println("You will lose " + loss + "$");
+                    System.out.println("You will lose " + String.format("%.2f", loss) + "$");
                 } else if (currentPrice > avgEntryPrice) {
                     double profit = stockAmount * (currentPrice - avgEntryPrice);
-                    System.out.println("You will profit " + profit + "$");
+                    System.out.println("You will profit " + String.format("%.2f", profit) + "$");
                 }
             }
         }
