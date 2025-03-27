@@ -31,6 +31,13 @@ public class StockGuru {
     private static final String NAMINGS_FILE = "lib/Namings.csv";
     private static final String STOCKS_DIR = "lib/Stocks/";
 
+
+    /**
+     * Main method to start the StockGuru application.
+     * It initializes the application, prompts for user input, and creates the User.
+     * Starts the trading simulation and displays the end information.
+     * If the user chooses to restart, it resets the application and starts again.
+     */
     public static void main( String[] args) {
         DisplayUtils.welcomeMessage();
         initial();
@@ -66,6 +73,10 @@ public class StockGuru {
         }
     }
 
+    /**
+     * Resets the application state by reinitializing variables and clearing maps.
+     * This method is called when the user chooses to restart the application.
+     */
     public static void reset() {
         actionLogs = new ActionLogs();
         stockDaysAll = new StockDaysAll();
@@ -76,6 +87,10 @@ public class StockGuru {
         today = stockDaysAll.getStockDay(day);
     }
 
+    /**
+     * Initializes the application by reading stock data from files and populating maps.
+     * It reads the namings file to get stock abbreviations and names, and stores them in maps.
+     */
     public static void initial() {
 
         try (BufferedReader br = new BufferedReader(new FileReader(NAMINGS_FILE))) {
@@ -94,16 +109,23 @@ public class StockGuru {
         }
     }
 
-    public static void start(User user) {
+    /**
+     * Starts the trading simulation for the specified user.
+     * It iterates through the days, updates stock data, and allows the user to choose stocks to trade.
+     * @param user The user object representing the current user.
+     */
+    public static void start(User user ) {
         while (day <= days) {
             DisplayUtils.displayDay(day);
-            updateStockData(user);
+            updateStockData();
             beginOfDay(user);
 
             if (user instanceof Bot) {
                 Bot bot = (Bot) user;
-                bot.autoTrade(stockDaysAll, actionLogs, day);
+                bot.autoTrade(stockDaysAll, actionLogs, day, stocksMap);
             } else {
+                user.evaluateSellOptions(today, actionLogs, stocksMap, day);
+
                 chooseStock(user);
             }
             day++;
@@ -111,6 +133,11 @@ public class StockGuru {
         System.out.println("There is no more data available!");
     }
 
+    /**
+     * Displays end information after the trading simulation is complete.
+     * It shows the best performing stock and its performance metrics.
+     * @param user The user object representing the current user.
+     */
     public static void endInfo(User user) {
         DisplayUtils.endOfGameMessage();
         Stock bestStock = getBestPerformingStock();
@@ -126,6 +153,10 @@ public class StockGuru {
         }
     }
 
+    /**
+     * Gets the best performing stock based on the percentage increase from the first day to the current day.
+     * @return The best performing stock object.
+     */
     public static Stock getBestPerformingStock() {
         return today.getStocks().stream()
                 .max(Comparator.comparingDouble(stock -> {
@@ -135,6 +166,11 @@ public class StockGuru {
                 .orElse(null);
     }
 
+    /**
+     * Displays the beginning of the day data for the user.
+     * It shows the stock details, including course, volume, and performance metrics.
+     * @param user The user object representing the current user.
+     */
     public static void beginOfDay(User user) {
         System.out.println("New Day Data is being loaded...");
         System.out.println("Data loaded!");
@@ -150,8 +186,8 @@ public class StockGuru {
             long stockVolume = stock.getVolume();
         
             // Calculations
-            double avgEntryPriceToday = actionLogs.getAvgEntryPrice(user.getID(), stockID, day);
-            double profitAmount = (stockCourse - avgEntryPriceToday) * userStockAmount;
+            double avgEntryPrice = actionLogs.getAvgEntryPrice(user.getID(), stockID, day);
+            double profitAmount = (stockCourse - avgEntryPrice) * userStockAmount;
         
             double perStockChange = 0;
             if (stocksYesterday != null) {
@@ -159,13 +195,17 @@ public class StockGuru {
                 perStockChange = stockY == null ? 0 : ((stockCourse - stockY.getCourse()) / stockY.getCourse()) * 100;
             }
         
-            double profitPercentage = userStockAmount == 0 || avgEntryPriceToday == 0 ? 0 : ((stockCourse - avgEntryPriceToday) / avgEntryPriceToday) * 100;
-            DisplayUtils.displayStockDetails(stockID, stockAbbr, stockName, stockCourse, (int) stockVolume, perStockChange, userStockAmount, avgEntryPriceToday, profitAmount, profitPercentage);
+            double profitPercentage = userStockAmount == 0 || avgEntryPrice == 0 ? 0 : ((stockCourse - avgEntryPrice) / avgEntryPrice) * 100;
+            DisplayUtils.displayStockDetails(stockID, stockAbbr, stockName, stockCourse, (int) stockVolume, perStockChange, userStockAmount, avgEntryPrice, profitAmount, profitPercentage);
         }
         DisplayUtils.displaySeparator();
     }
 
-    public static void updateStockData(User user) {
+    /**
+     * Updates the stock data for the current day by reading from CSV files.
+     * It populates the stock data into the StockDay object and adds it to the StockDaysAll object.
+     */
+    public static void updateStockData() {
         StockDay stockDay = new StockDay(day);
 
         try {
@@ -204,6 +244,11 @@ public class StockGuru {
         today = stockDay;
     }
 
+    /**
+     * Displays the user action options at the beginning of the day.
+     * It allows the user to choose between buying stocks, showing available stocks, selling stock options, or ending the day.
+     * @param user The user object representing the current user.
+     */
     public static void chooseStock(User user) {
         ArrayList<Object[]> validInputs = new ArrayList<>();
         DisplayUtils.askUserAction();
@@ -232,10 +277,17 @@ public class StockGuru {
         }
     }
 
+    /**
+     * Handles the Buying of a Stock by the User
+     * Asks the user which stock he wants to buy
+     * @param user The user object representing the current user.
+     * @throws NumberFormatException if the input is not a valid integer.
+     */
     public static void buyStock(User user) {
         System.out.println("Which Stock would you like to buy? (Enter ID)");
-        int stockID = Integer.parseInt(getInput(1, null));
-        double stockCourse = today.getStock(stockID).getCourse();
+        int stockID = Integer.parseInt(getInput(1, stocksMap.keySet().stream().map(String::valueOf).collect(Collectors.toList())));
+        Stock stockToBuy = today.getStock(stockID);
+        double stockCourse = stockToBuy.getCourse();
         double userMoney = user.getMoney();
         int maxAmount = (int) (userMoney / stockCourse);
         String stockName = stocksMap.get(stockID)[1].toString();
@@ -252,31 +304,51 @@ public class StockGuru {
             return;
         }
 
-        user.buyStock(stockID, stockName, stockAmount, stockCourse, actionLogs, day);
+        user.buyStock(stockToBuy, stockName, stockAmount, actionLogs, day);
     }
 
+    /**
+     * Displays the options for selling stocks to the user.
+     * It allows the user to choose between selling a specific stock or selling all stocks.
+     * @param user The user object representing the current user.
+     */
     public static void sellStockOptions(User user) {
         DisplayUtils.displaySellOptions();
 
         int choice = Integer.parseInt(getInput(1, List.of("1", "2")));
         switch (choice) {
             case 1 -> sellStock(user);
-            case 2 -> user.sellAllStocks(actionLogs, day, today);
+            case 2 -> user.sellAllStocks(actionLogs, day, today, stocksMap);
         }
     }
 
+    /**
+     * Handles the Selling of a Stock by the User
+     * Asks the user which stock he wants to sell and how much of it.
+     * @param user
+     */
     public static void sellStock(User user) {
         DisplayUtils.askStockToSell();
         int stockID = Integer.parseInt(getInput(1, null));
         DisplayUtils.askStockAmountToSell();
         int stockAmount = getInputStockSell(user, stockID);
+        String stockName = stocksMap.get(stockID)[1].toString();
         if (stockAmount == 0) {
             return;
         }
-        double stockCourse = stockDaysAll.getStockDay(day).getStock(stockID).getCourse();
-        user.sellStock(stockID, stockAmount, stockCourse, actionLogs, day);
+        Stock stockToSell = today.getStock(stockID);
+        user.sellStock(stockToSell, stockName, stockAmount, actionLogs, day);
     }
 
+    /**
+     * Method to get user input for stock selling amount.
+     * It validates the input and ensures the amount is not greater than the user's stock amount.
+     * If the input is invalid, it displays an error message and prompts again.
+     * @param user    The user object representing the current user.
+     * @param stockID The ID of the stock to be sold.
+     * @return The validated stock amount to be sold.
+     * @throws NumberFormatException if the input is not a valid integer. (Shoudtn't happen or the getInput method doesnt work correctly)
+     */
     public static int getInputStockSell(User user, int stockID) {
         int stockAmount = user.getStockPortfolio().getOrDefault(stockID, 0);
         while (true) {
@@ -294,6 +366,17 @@ public class StockGuru {
         }
     }
 
+    /**
+     * Gets user input for the stock buying amount.
+     * Validates the input to ensure it does not exceed the maximum amount the user can afford.
+     * Displays error messages for invalid inputs and prompts again.
+     *
+     * @param user      The user object representing the current user.
+     * @param stockID   The ID of the stock to be bought.
+     * @param maxAmount The maximum number of stocks the user can afford.
+     * @return The validated stock amount to be bought.
+     * @throws NumberFormatException if the input is not a valid integer. (Shoudtn't happen or the getInput method doesnt work correctly)
+     */
     public static int getInputStockBuy(User user, int stockID, int maxAmount) {
         String stockName = stocksMap.get(stockID)[1].toString();
 
@@ -312,6 +395,14 @@ public class StockGuru {
         }
     }
 
+    /**
+     * Gets user input as a string and validates it based on the specified type.
+     * Re-prompts the user if the input is invalid.
+     *
+     * @param typeGet     The type of input to validate (0: letters, 1: integers, 2: decimals).
+     * @param validInputs A list of valid inputs (optional).
+     * @return The validated user input as a string.
+     */
     public static String getInput(int typeGet, List<String> validInputs) {
         while (true) {
             String input = scan.nextLine();
@@ -324,6 +415,14 @@ public class StockGuru {
         
     }
 
+    /**
+     * Validates user input based on the specified type and optional valid inputs.
+     *
+     * @param input       The user input to validate.
+     * @param typeGet     The type of input to validate (0: letters, 1: integers, 2: decimals).
+     * @param validInputs A list of valid inputs (optional).
+     * @return True if the input is valid, false otherwise.
+     */
     private static boolean isValidInput(String input, int typeGet, List<String> validInputs) {
         switch (typeGet) {
             case 0:

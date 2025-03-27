@@ -10,23 +10,37 @@ import java.util.*;
 public class Bot extends User {
     private int maxSharesPerStockPercentage = 100;
 
+    /**
+     * * Constructor for the Bot class.
+     * @param ID
+     * @param username
+     * @param maxSharesPerStockPercentage
+     */
     public Bot(int ID, String username, int maxSharesPerStockPercentage) {
         super(ID, username);
         this.maxSharesPerStockPercentage = maxSharesPerStockPercentage;
     }
     
-    public void autoTrade(StockDaysAll stockDaysAll, ActionLogs actionLogs, int currentDay) {
+    /**
+     * * Starts the auto trading process.
+     * This method is called every day to analyze the stock market and make trading decisions.
+     * @param stockDaysAll
+     * @param actionLogs
+     * @param currentDay
+     * @param stocksMap
+     */
+    public void autoTrade(StockDaysAll stockDaysAll, ActionLogs actionLogs, int currentDay, HashMap<Integer, Object[]> stocksMap) {
         StockDay today = stockDaysAll.getStockDay(currentDay);
 
         if (currentDay == 0) {
             // Initial Investment Logic
-            initialInvestment(today, actionLogs, currentDay);
+            initialInvestment(today, actionLogs, currentDay, stocksMap);
             return;
         }
     
         if (currentDay == 10) {
             // Sell all stocks on day 10
-            sellAllStocks(actionLogs, currentDay, today);
+            sellAllStocks(actionLogs, currentDay, today, stocksMap);
             return;
         }
     
@@ -61,18 +75,27 @@ public class Bot extends User {
         ));
     
         // Selling Strategy
-        optimizePortfolio(today, bestPerformingStocks, actionLogs, currentDay);
+        optimizePortfolio(today, bestPerformingStocks, actionLogs, currentDay, stocksMap);
     
         // Allocate funds
         double totalFunds = getMoney();
         double growthFunds = totalFunds * 0.75;
         double riskFunds = totalFunds * 0.25;
     
-        allocateFunds(today, bestPerformingStocks, growthFunds, actionLogs, currentDay);
-        allocateFunds(today, undervaluedStocks, riskFunds, actionLogs, currentDay);
+        allocateFunds(today, bestPerformingStocks, growthFunds, actionLogs, currentDay, stocksMap);
+        allocateFunds(today, undervaluedStocks, riskFunds, actionLogs, currentDay, stocksMap);
     }
     
-    private void initialInvestment(StockDay today, ActionLogs actionLogs, int currentDay) {
+    /**
+     * * Initial investment strategy for the bot.
+     * This method is called on the first day to invest in stocks.
+     * Takes a random selection of stocks and invests a portion of the available funds in them.
+     * @param today
+     * @param actionLogs
+     * @param currentDay
+     * @param stocksMap
+     */
+    private void initialInvestment(StockDay today, ActionLogs actionLogs, int currentDay, HashMap<Integer, Object[]> stocksMap) {
         Random random = new Random();
         List<Stock> stocks = today.getStocks();
         Collections.shuffle(stocks); // Randomize stock selection
@@ -84,7 +107,8 @@ public class Bot extends User {
     
             if (maxShares > 0) {
                 int sharesToBuy = random.nextInt(maxShares) + 1; // Randomize quantity
-                buyStock(stock.getID(), "Stock " + stock.getID(), sharesToBuy, stockPrice, actionLogs, currentDay);
+                String stockName = stocksMap.get(stock.getID())[1].toString();
+                buyStock(stock, stockName, sharesToBuy, actionLogs, currentDay);
                 funds -= sharesToBuy * stockPrice;
     
                 if (funds <= 0) break; // Stop if funds are exhausted
@@ -92,13 +116,22 @@ public class Bot extends User {
         }
     }
     
-    private void optimizePortfolio(StockDay today, List<Stock> bestPerformingStocks, ActionLogs actionLogs, int currentDay) {
+    /**
+     * * Optimizes the portfolio by selling stocks that are performing well and reallocating funds to better-performing stocks.
+     * @param today
+     * @param bestPerformingStocks
+     * @param actionLogs
+     * @param currentDay
+     * @param stocksMap
+     */
+    private void optimizePortfolio(StockDay today, List<Stock> bestPerformingStocks, ActionLogs actionLogs, int currentDay, HashMap<Integer, Object[]> stocksMap) {
         List<Map.Entry<Integer, Integer>> portfolioEntries = new ArrayList<>(getStockPortfolio().entrySet());
     
         for (Map.Entry<Integer, Integer> entry : portfolioEntries) {
             int stockID = entry.getKey();
             int stockAmount = entry.getValue();
             Stock stock = today.getStock(stockID);
+            String stockName = stocksMap.get(stockID)[1].toString();
     
             if (stock != null) {
                 double currentPrice = stock.getCourse();
@@ -108,9 +141,9 @@ public class Bot extends User {
                 if (profit > 0) {
                     for (Stock potentialStock : bestPerformingStocks) {
                         if (potentialStock.getCourse() > currentPrice) {
-                            sellStock(stockID, stockAmount, currentPrice, actionLogs, currentDay);
+                            sellStock(potentialStock, stockName, stockAmount, actionLogs, currentDay);
                             double funds = stockAmount * currentPrice;
-                            allocateFunds(today, Collections.singletonList(potentialStock), funds, actionLogs, currentDay);
+                            allocateFunds(today, Collections.singletonList(potentialStock), funds, actionLogs, currentDay, stocksMap);
                             break;
                         }
                     }
@@ -119,7 +152,17 @@ public class Bot extends User {
         }
     }
 
-    private void allocateFunds(StockDay today, List<Stock> stocks, double funds, ActionLogs actionLogs, int currentDay) {
+    /**
+     * * * Allocates funds to buy stocks based on the available funds and the maximum investment percentage per stock.
+     * This method is called to buy stocks after selling others.
+     * @param today
+     * @param stocks
+     * @param funds
+     * @param actionLogs
+     * @param currentDay
+     * @param stocksMap
+     */
+    private void allocateFunds(StockDay today, List<Stock> stocks, double funds, ActionLogs actionLogs, int currentDay, HashMap<Integer, Object[]> stocksMap) {
         double totalPortfolioValue = funds + getInvestedValue(today); // Total funds including invested value
         double maxInvestment = totalPortfolioValue * (maxSharesPerStockPercentage / 100.0); // Max investment per stock
     
@@ -129,7 +172,8 @@ public class Bot extends User {
     
             if (maxShares > 0 && stockPrice <= funds) {
                 int sharesToBuy = Math.min(maxShares, (int) (funds / stockPrice));
-                buyStock(stock.getID(), "Stock " + stock.getID(), sharesToBuy, stockPrice, actionLogs, currentDay);
+                String stockName = stocksMap.get(stock.getID())[1].toString();
+                buyStock(stock, stockName, sharesToBuy, actionLogs, currentDay);
                 funds -= sharesToBuy * stockPrice;
     
                 if (funds <= 0) break;

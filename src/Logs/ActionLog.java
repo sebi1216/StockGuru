@@ -7,17 +7,27 @@ public class ActionLog {
     double course;
     double money;
 
-    public ActionLog(int userID, int day, int stockID, int amount, double course, double money) {
+    /**
+     * Constructor for the ActionLog class.
+     * @param userID
+     * @param day
+     * @param stockID
+     * @param amount
+     * @param course
+     */
+    public ActionLog(int userID, int day, int stockID, int amount, double course) {
         this.userID = userID;
         this.day = day;
         this.stockID = stockID;
         this.amount = amount;
         this.course = course;
-        this.money = money;
     }
 
+    /**
+     * Override the toString method to return a string representation of the ActionLog object.
+     */
     @Override
     public String toString() {
-        return "ActionLog { userID=" + userID + ", day=" + day + ", stockID=" + stockID + ", amount=" + amount + ", course=" + course + ", money=" + money + " }";
+        return "ActionLog { userID=" + userID + ", day=" + day + ", stockID=" + stockID + ", amount=" + amount + ", course=" + course + " }";
     }
 }

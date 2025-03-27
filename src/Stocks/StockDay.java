@@ -6,14 +6,27 @@ public class StockDay {
     int day;
     ArrayList<Stock> stocks = new ArrayList<Stock>();
 
+    /**
+     * * Constructor for the StockDay class.
+     * @param day
+     */
     public StockDay(int day) {
         this.day = day;
     }
 
+    /**
+     * * Returns alll the stocks for this StockDay.
+     * @return ArrayList<Stock>
+     */
     public ArrayList<Stock> getStocks() {
         return stocks;
     }
 
+    /**
+     * Returns the stock for the given ID.
+     * @param ID
+     * @return Stock
+     */
     public Stock getStock (int ID) {
         for (Stock stock : stocks) {
             if (stock.ID == ID) {
@@ -23,12 +36,21 @@ public class StockDay {
         return null;
     }
 
+    /**
+     * * Adds a stock to the list of stocks for this StockDay.
+     * @param stock
+     */
     public void addStock(Stock stock) {
         if (stock != null) {
             stocks.add(stock);
         }
     }
 
+    /**
+     * * Shows the user which stocks they can buy with the given amount of money.
+     * @param money
+     * @param stocksMap
+     */
     public void userCanBuy(double money, HashMap<Integer, Object[]> stocksMap) {
         for (Stock stock : stocks) {
             if (stock.course <= money) {
@@ -38,6 +60,9 @@ public class StockDay {
         }
     }
 
+    /**
+     * Overrides the toString method to provide a string representation of the StockDay object.
+     */
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
