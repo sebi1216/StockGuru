@@ -2,6 +2,7 @@ package User;
 import java.util.HashMap;
 import java.util.Map;
 
+import DisplayUtils.DisplayUtils;
 import Logs.ActionLog;
 import Logs.ActionLogs;
 import Stocks.Stock;
@@ -49,7 +50,7 @@ public abstract class User {
         this.stockPortfolio = stockPortfolio;
     }
 
-    public void buyStock (int stockID,String name, int amount, double course, ActionLogs actionLogs, int day) {
+    public void buyStock (int stockID, String name, int amount, double course, ActionLogs actionLogs, int day) {
         if (money >= amount * course) {
             money -= amount * course;
             if (stockPortfolio.containsKey(stockID)) {
@@ -116,5 +117,12 @@ public abstract class User {
             }
         }
         return investedValue;
+    }
+
+    public double getTotalValue(StockDay today) {
+        double totalValue = -1000; // Starting with the initial investment of 1000
+        totalValue += getInvestedValue(today); // Add the current value of the portfolio
+        totalValue += money; // Add the remaining cash in the account
+        return totalValue;
     }
 }
