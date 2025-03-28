@@ -26,6 +26,62 @@ public class BuySellLog {
     }
 
     /**
+     * Returns the ID of the log.
+     * @return
+     */
+    public int getLogID() {
+        return LogID;
+    }
+
+    /**
+     * Returns the ID of the user who made the transaction.
+     * @return
+     */
+    public int getUserID() {
+        return userID;
+    }
+
+    /**
+     * Returns the day of the transaction.
+     * @return
+     */
+    public int getDay() {
+        return day;
+    }
+
+    /**
+     * Returns the ID of the stock bought or sold in the transaction.
+     * @return
+     */
+    public int getStockID() {
+        return stockID;
+    }
+
+    /**
+     * Returns the amount of stock bought or sold in the transaction.
+     * @return
+     */
+    public int getAmount() {
+        return amount;
+    }
+
+    /**
+     * Returns the course of the stock at the time of the transaction.
+     * @return
+     */
+    public double getCourse() {
+        return course;
+    }
+
+    /**
+     * Returns the amount of money spent or earned in the transaction.
+     * @return
+     */
+    public double getMoney() {
+        return money;
+    }
+
+    /**
      * Override the toString method to return a string representation of the BuySellLog object.
      */
     @Override

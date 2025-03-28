@@ -39,8 +39,6 @@ public class Bot extends User {
         }
     
         if (currentDay == 10) {
-            // Sell all stocks on day 10
-            sellAllStocks(actionLogs, currentDay, today, stocksMap);
             return;
         }
     

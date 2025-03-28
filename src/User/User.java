@@ -112,7 +112,10 @@ public abstract class User {
      * @param stockDay
      */
     public void sellAllStocks (ActionLogs actionLogs, int day,StockDay stockDay, HashMap<Integer, Object[]> stocksMap) {
-        for (int stockID : stockPortfolio.keySet()) {
+        HashMap<Integer, Integer> stockPortfolioCopy = new HashMap<Integer, Integer>();
+        stockPortfolioCopy.putAll(stockPortfolio);
+        for (int stockID : stockPortfolioCopy.keySet()) {
+            if (stockPortfolio.getOrDefault(stockID, -1) == -1) {continue;}
             Stock stock = stockDay.getStock(stockID);
             String stockName = stocksMap.get(stockID)[1].toString();
             sellStock(stock, stockName, stockPortfolio.get(stockID), actionLogs, day);

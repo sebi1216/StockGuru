@@ -2,7 +2,7 @@ package Logs;
 import java.util.ArrayList;
 
 public class ActionLogs {
-    ArrayList<BuySellLog> BuySellLogs = new ArrayList<BuySellLog>();
+    static ArrayList<BuySellLog> BuySellLogs = new ArrayList<BuySellLog>();
     static ArrayList<UserLog> UserLogs = new ArrayList<UserLog>();
     private static int currentBSID = 0;
     private static int currentUID = 0;
@@ -31,6 +31,14 @@ public class ActionLogs {
     }
 
     /**
+     * Gets the list of BuySellLogs.
+     * @return ArrayList of BuySellLogs
+     */
+    public static ArrayList<BuySellLog> getBuySellLogs() {
+        return BuySellLogs;
+    }
+
+    /**
      * Adds a UserLog to the list of UserLogs.
      * @param userID
      * @param day
@@ -42,6 +50,14 @@ public class ActionLogs {
         if (log != null) {
             UserLogs.add(log);
         }
+    }
+
+    /**
+     * Gets the list of UserLogs.
+     * @return ArrayList of UserLogs
+     */
+    public static ArrayList<UserLog> getUserLogs() {
+        return UserLogs;
     }
 
     /**

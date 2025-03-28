@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 
 import DisplayUtils.DisplayUtils;
 import Logs.ActionLogs;
+import Logs.BuySellLog;
 import Stocks.Stock;
 import Stocks.StockDay;
 import Stocks.StockDaysAll;
@@ -135,13 +136,34 @@ public class StockGuru {
 
     /**
      * Displays end information after the trading simulation is complete.
-     * It shows the best performing stock and its performance metrics.
      * @param user The user object representing the current user.
      */
     public static void endInfo(User user) {
+        user.sellAllStocks(actionLogs, day, today, stocksMap);
         DisplayUtils.endOfGameMessage();
-        Stock bestStock = getBestPerformingStock();
+        displayBestPerformigStock();
+        showStocks(user, 1);
+        displayResultGrade(user);
+    }
 
+    /**
+     * Displays the best-performing stock based on the percentage increase from the first day to the current day.
+     * It calculates the absolute and percentage increase and displays the stock name, absolute increase, and percentage increase.
+     */
+    public static void displayBestPerformigStock() {
+        // Calculate the best-performing stock based on percentage increase from the first day to the current day
+        Stock bestStock = today.getStocks()
+            .stream()
+            .max(Comparator.comparingDouble(stock -> {
+                // Get the stock's price on the first day
+                double firstDayPrice = stockDaysAll.getStockDay(0)
+                    .getStock(stock.getID())
+                    .getCourse();
+                
+                // Calculate the percentage increase
+                return stock.getCourse() / firstDayPrice;
+            }))
+            .orElse(null);        
         if (bestStock != null) {
             double firstDayPrice = stockDaysAll.getStockDay(0).getStock(bestStock.getID()).getCourse();
             double currentPrice = bestStock.getCourse();
@@ -154,16 +176,67 @@ public class StockGuru {
     }
 
     /**
-     * Gets the best performing stock based on the percentage increase from the first day to the current day.
-     * @return The best performing stock object.
+     * Displays the result grade based on the user's performance.
+     * It calculates the total profit, percentage profit, and evaluates the trades to assign a grade.
+     * @param user The user object representing the current user.
      */
-    public static Stock getBestPerformingStock() {
-        return today.getStocks().stream()
-                .max(Comparator.comparingDouble(stock -> {
-                    double firstDayPrice = stockDaysAll.getStockDay(0).getStock(stock.getID()).getCourse();
-                    return stock.getCourse() / firstDayPrice;
-                }))
-                .orElse(null);
+    public static void displayResultGrade(User user) {
+        double totalProfit = 0;
+        double totalPercentageProfit = 0;
+        boolean allTradesPositive = true;
+        int totalTrades = 0;
+        int positiveTrades = 0;
+    
+        ArrayList<BuySellLog> buySellLogs = ActionLogs.getBuySellLogs();
+        for (BuySellLog log : buySellLogs) {
+            if (log.getAmount() < 0) {
+                double profit = -log.getAmount() * (log.getCourse() - actionLogs.getAvgEntryPrice(log.getUserID(), log.getStockID(), log.getDay()));
+                double percentageProfit = (profit / (log.getAmount() * log.getCourse())) * 100;
+
+                totalProfit += profit;
+                totalPercentageProfit += percentageProfit;
+
+                totalTrades++;
+                if (profit > 0) {
+                    positiveTrades++;
+                } else {
+                    allTradesPositive = false;
+                }
+            }
+        }
+    
+        // Calculate grade
+        double grade = 0;
+    
+        // Base grade on total profit
+        if (totalProfit > 1000) {
+            grade += 3;
+        } else if (totalProfit > 500) {
+            grade += 2;
+        } else if (totalProfit > 0) {
+            grade += 1;
+        }
+    
+        // Add points for percentage profit
+        if (totalPercentageProfit > 50) {
+            grade += 2;
+        } else if (totalPercentageProfit > 20) {
+            grade += 1;
+        }
+    
+        // Add points for positive trades
+        if (allTradesPositive) {
+            grade += 1;
+        } else if (positiveTrades > totalTrades * 0.75) {
+            grade += 0.5;
+        }
+    
+        // Ensure grade is between 0 and 6
+        grade = Math.min(grade, 6);
+    
+        // Display results
+        DisplayUtils.displayTotalProfit(totalProfit);
+        DisplayUtils.displayResultGrade(totalProfit, totalPercentageProfit, grade);
     }
 
     /**

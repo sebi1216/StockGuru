@@ -83,6 +83,26 @@ public class DisplayUtils {
     }
 
     /**
+     * Displays the result grade along with total profit and percentage profit.
+     * The grade changes color based on its value (1 is green, 6 is red, with a gradient in between).
+     * @param totalProfit The total profit made by the user.
+     * @param totalPercentageProfit The total percentage profit made by the user.
+     * @param grade The grade awarded to the user.
+     */
+    public static void displayResultGrade(double totalProfit, double totalPercentageProfit, double grade) {
+        outputHandler.printf("Total Profit: %.2f$\n", totalProfit);
+        outputHandler.printf("Total Percentage Profit: %.2f%%\n", totalPercentageProfit);
+    
+        // Calculate the color based on the grade (1 is green, 6 is red)
+        int red = (int) ((grade - 1) / 5 * 255);
+        int green = (int) ((6 - grade) / 5 * 255);
+    
+        String gradeColor = String.format("\u001B[38;2;%d;%d;0m", red, green);
+    
+        outputHandler.printf("Your Grade: %s%.1f/6\u001B[0m\n", gradeColor, grade);
+    }
+
+    /**
      * Displays the portfolio header which is displayed at the beginning of the day
      * @param user
      * @param day
