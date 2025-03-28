@@ -37,4 +37,19 @@ public class StockDaysAll {
         }
         return null;
     }
+
+    /**
+     * Overrides the toString method to display all StockDays.
+     * @return String representation of StockDaysAll
+     */
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("StockDaysAll { ");
+        for (StockDay stockDay : stockDays.values()) {
+            sb.append(stockDay.toString()).append(", ");
+        }
+        sb.append("}");
+        return sb.toString();
+    }
 }

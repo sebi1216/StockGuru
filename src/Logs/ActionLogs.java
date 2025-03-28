@@ -3,7 +3,9 @@ import java.util.ArrayList;
 
 public class ActionLogs {
     ArrayList<BuySellLog> BuySellLogs = new ArrayList<BuySellLog>();
-    private static int currentID = 0;
+    static ArrayList<UserLog> UserLogs = new ArrayList<UserLog>();
+    private static int currentBSID = 0;
+    private static int currentUID = 0;
 
     /**
      * Constructor for the ActionLogs class.
@@ -20,11 +22,25 @@ public class ActionLogs {
      * @param amount
      * @param course
      */
-    public void addLog(int day, int stockID, int amount, double course) {
-        int ID = currentID++;
-        BuySellLog log = new BuySellLog(ID, day, stockID, amount, course);
+    public void addBuySellLog(int userID, int day, int stockID, int amount, double course) {
+        int ID = currentBSID++;
+        BuySellLog log = new BuySellLog(ID, userID, day, stockID, amount, course);
         if (log != null) {
             BuySellLogs.add(log);
+        }
+    }
+
+    /**
+     * Adds a UserLog to the list of UserLogs.
+     * @param userID
+     * @param day
+     * @param action
+     */
+    public static void addUserLog(int userID, int day, String action) {
+        int ID = currentUID++;
+        UserLog log = new UserLog(ID, userID, day, action);
+        if (log != null) {
+            UserLogs.add(log);
         }
     }
 
@@ -45,5 +61,25 @@ public class ActionLogs {
             }
         }
         return sum / count;
+    }
+
+    /**
+     * Override the toString method to return a string representation of the ActionLogs object.
+     */
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+
+        sb.append("Buy/Sell Logs:\n");
+        for (BuySellLog log : BuySellLogs) {
+            sb.append(log.toString()).append("\n");
+        }
+
+        sb.append("User Logs:\n");
+        for (UserLog log : UserLogs) {
+            sb.append(log.toString()).append("\n");
+        }
+
+        return sb.toString();
     }
 }

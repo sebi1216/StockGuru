@@ -20,7 +20,7 @@ public class StockGuru {
     static ActionLogs actionLogs = new ActionLogs();
     static StockDaysAll stockDaysAll = new StockDaysAll();
     static HashMap<Integer, Object[]> stocksMap = new HashMap<>(); // stockID, [abbr, name]
-    static HashMap<String, Integer> abbrMap = new HashMap<>(); // abbr, stockID
+    static HashMap<String, Integer> abbrMap = new HashMap<>();     // abbr, stockID
     static Users users = new Users();
     static Scanner scan = new Scanner(System.in);
 
@@ -45,7 +45,8 @@ public class StockGuru {
         DisplayUtils.askUserName();
         String username = getInput(0, null);
         DisplayUtils.greetUser(username);
-        User user = new Trader(0, username);
+        Trader trader = users.createTrader(username);
+        ActionLogs.addUserLog(trader.getID(), day, "Trader created");
 
         DisplayUtils.askUserType();
         String userType = getInput(0, List.of("Trader", "Bot"));
@@ -55,12 +56,13 @@ public class StockGuru {
             username = getInput(0, null);
             DisplayUtils.askMaxSharesPercentage();
             int maxSharesPercentage = Integer.parseInt(getInput(1, null));
-            Bot bot = new Bot(1, username, maxSharesPercentage);
+            Bot bot = users.createBot(username, maxSharesPercentage);
+            ActionLogs.addUserLog(bot.getID(), day, "Bot created");
             start(bot);
             endInfo(bot);
         } else {
-            start(user);
-            endInfo(user);
+            start(trader);
+            endInfo(trader);
         }
 
         DisplayUtils.askRestart();
@@ -405,6 +407,8 @@ public class StockGuru {
     public static String getInput(int typeGet, List<String> validInputs) {
         while (true) {
             String input = scan.nextLine();
+            input = input.trim(); // Remove leading and trailing whitespace
+            input = input.replaceAll("\\s+", " "); // Replace multiple spaces with a single space
             if (isValidInput(input, typeGet, validInputs)) {
                 return input;
             } else {
@@ -425,11 +429,14 @@ public class StockGuru {
     private static boolean isValidInput(String input, int typeGet, List<String> validInputs) {
         switch (typeGet) {
             case 0:
-                return input.matches("^[a-zA-Z]+$") && (validInputs == null || validInputs.contains(input));
+                return input.matches("^[a-zA-Z]+$") && 
+                       (validInputs == null || validInputs.stream().map(String::toLowerCase).anyMatch(input.toLowerCase()::equals));
             case 1:
-                return input.matches("^[0-9]+$") && (validInputs == null || validInputs.contains(input));
+                return input.matches("^[0-9]+$") && 
+                       (validInputs == null || validInputs.stream().map(String::toLowerCase).anyMatch(input.toLowerCase()::equals));
             case 2:
-                return input.matches("^[0-9]*\\.?[0-9]+$") && (validInputs == null || validInputs.contains(input));
+                return input.matches("^[0-9]*\\.?[0-9]+$") && 
+                       (validInputs == null || validInputs.stream().map(String::toLowerCase).anyMatch(input.toLowerCase()::equals));
             default:
                 return false;
         }

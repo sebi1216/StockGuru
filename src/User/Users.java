@@ -18,10 +18,11 @@ public class Users {
      * Add the trader to the list of users.
      * @param username
      */
-    public void createTrader(String username) {
+    public Trader createTrader(String username) {
         int ID = currentID++;
         Trader trader = new Trader(ID, username);
         users.add(trader);
+        return trader;
     }
 
     /**
@@ -30,10 +31,11 @@ public class Users {
      * @param username
      * @param maxSharesPercentage
      */
-    public void createBot(String username, int maxSharesPercentage) {
+    public Bot createBot(String username, int maxSharesPercentage) {
         int ID = currentID++;
         Bot bot = new Bot(ID, username, maxSharesPercentage);
         users.add(bot);
+        return bot;
     }
 
     /**
@@ -48,15 +50,5 @@ public class Users {
             }
         }
         return null;
-    }
-
-    /**
-     * Adds a user to the list of users.
-     * @param user
-     */
-    public void addUser(User user) {
-        if (user != null) {
-            users.add(user);
-        }
     }
 }

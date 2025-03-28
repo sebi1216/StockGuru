@@ -1,5 +1,6 @@
 package Logs;
 public class BuySellLog {
+    int LogID;
     int userID;
     int day;
     int stockID;
@@ -15,7 +16,8 @@ public class BuySellLog {
      * @param amount
      * @param course
      */
-    public BuySellLog(int userID, int day, int stockID, int amount, double course) {
+    public BuySellLog(int LogID, int userID, int day, int stockID, int amount, double course) {
+        this.LogID = LogID;
         this.userID = userID;
         this.day = day;
         this.stockID = stockID;
@@ -28,6 +30,6 @@ public class BuySellLog {
      */
     @Override
     public String toString() {
-        return "ActionLog { userID=" + userID + ", day=" + day + ", stockID=" + stockID + ", amount=" + amount + ", course=" + course + " }";
+        return "ActionLog { LogID=" + LogID + ", userID=" + userID + ", day=" + day + ", stockID=" + stockID + ", amount=" + amount + ", course=" + course + " }";
     }
 }

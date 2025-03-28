@@ -74,7 +74,7 @@ public abstract class User {
             } else {
                 stockPortfolio.put(stockID, amount);
             }
-            actionLogs.addLog(day, stockID, amount, course);
+            actionLogs.addBuySellLog(ID, day, stockID, amount, course);
             DisplayUtils.buyStockMessage(name, amount, course, money);
             stock.setVolume(stock.getVolume() - amount);
         }
@@ -96,7 +96,7 @@ public abstract class User {
         if (stockPortfolio.containsKey(stockID) && stockPortfolio.get(stockID) >= amount) {
             money += amount * course;
             stockPortfolio.put(stockID, stockPortfolio.get(stockID) - amount);
-            actionLogs.addLog(day, stockID, amount * -1, course);
+            actionLogs.addBuySellLog(ID, day, stockID, amount * -1, course);
             DisplayUtils.sellStockMessage(name, amount, course, money);
             stock.setVolume(stock.getVolume() + amount);
         }
@@ -176,5 +176,16 @@ public abstract class User {
         totalValue += getInvestedValue(today); // Add the current value of the portfolio
         totalValue += money; // Add the remaining cash in the account
         return totalValue;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("User { ID=").append(ID).append(", username=").append(username).append(", money=").append(money).append(", stockPortfolio={");
+        for (Map.Entry<Integer, Integer> entry : stockPortfolio.entrySet()) {
+            sb.append("StockID: ").append(entry.getKey()).append(", Amount: ").append(entry.getValue()).append("; ");
+        }
+        sb.append("} }");
+        return sb.toString();
     }
 }
