@@ -326,17 +326,25 @@ public class StockGuru {
     /**
      * Handles the Selling of a Stock by the User
      * Asks the user which stock he wants to sell and how much of it.
-     * @param user
+     * @param user The user object representing the current user.
      */
     public static void sellStock(User user) {
         DisplayUtils.askStockToSell();
-        int stockID = Integer.parseInt(getInput(1, null));
+
+        // Get the list of stock IDs the user owns
+        List<String> ownedStockIDs = user.getStockPortfolio().keySet().stream().map(String::valueOf).collect(Collectors.toList());
+
+        // Validate input to ensure the user can only select stocks they own
+        int stockID = Integer.parseInt(getInput(1, ownedStockIDs));
+
         DisplayUtils.askStockAmountToSell();
         int stockAmount = getInputStockSell(user, stockID);
+
         String stockName = stocksMap.get(stockID)[1].toString();
         if (stockAmount == 0) {
             return;
         }
+
         Stock stockToSell = today.getStock(stockID);
         user.sellStock(stockToSell, stockName, stockAmount, actionLogs, day);
     }

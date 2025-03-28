@@ -131,6 +131,7 @@ public abstract class User {
                 double currentPrice = stock.getCourse();
                 double avgEntryPrice = actionLogs.getAvgEntryPrice(ID, stockID, day);
                 int stockAmount = stockPortfolio.get(stockID);
+                if (stockAmount == 0) {continue;}
                 String stockName = stocksMap.get(stockID)[1].toString();
     
                 System.out.println("You can sell " + stockAmount + " stocks of " + stockName + " for " + currentPrice + "$ each.");
