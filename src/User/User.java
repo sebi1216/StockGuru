@@ -96,6 +96,9 @@ public abstract class User {
         if (stockPortfolio.containsKey(stockID) && stockPortfolio.get(stockID) >= amount) {
             money += amount * course;
             stockPortfolio.put(stockID, stockPortfolio.get(stockID) - amount);
+            if (stockPortfolio.get(stockID) == 0) {
+                stockPortfolio.remove(stockID);
+            }
             actionLogs.addBuySellLog(ID, day, stockID, amount * -1, course);
             DisplayUtils.sellStockMessage(name, amount, course, money);
             stock.setVolume(stock.getVolume() + amount);
@@ -125,6 +128,7 @@ public abstract class User {
      * @param day
      */
     public void evaluateSellOptions(StockDay today, ActionLogs actionLogs, HashMap<Integer, Object[]> stocksMap, int day) {
+        DisplayUtils.printSellOptionsHeader();
         for (int stockID : stockPortfolio.keySet()) {
             Stock stock = today.getStock(stockID);
             if (stock != null) {
@@ -133,18 +137,14 @@ public abstract class User {
                 int stockAmount = stockPortfolio.get(stockID);
                 if (stockAmount == 0) {continue;}
                 String stockName = stocksMap.get(stockID)[1].toString();
-    
-                System.out.println("You can sell " + stockAmount + " stocks of " + stockName + " for " + currentPrice + "$ each.");
-    
-                if (currentPrice < avgEntryPrice) {
-                    double loss = stockAmount * (avgEntryPrice - currentPrice);
-                    System.out.println("You will lose " + String.format("%.2f", loss) + "$");
-                } else if (currentPrice > avgEntryPrice) {
-                    double profit = stockAmount * (currentPrice - avgEntryPrice);
-                    System.out.println("You will profit " + String.format("%.2f", profit) + "$");
-                }
+                String stockAbbr = stocksMap.get(stockID)[0].toString();
+        
+                double profitPercentage = ((currentPrice - avgEntryPrice) / avgEntryPrice) * 100;
+                double profitAmount = (currentPrice - avgEntryPrice) * stockAmount;
+                DisplayUtils.displaySellDetailsOptions(stock.getID(), stockAbbr, stockName, stockAmount, currentPrice, profitAmount, profitPercentage);
             }
         }
+        DisplayUtils.displaySeparator();
     }
 
     /**

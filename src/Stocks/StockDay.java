@@ -2,6 +2,8 @@ package Stocks;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import DisplayUtils.DisplayUtils;
+
 public class StockDay {
     int day;
     ArrayList<Stock> stocks = new ArrayList<Stock>();
@@ -52,10 +54,13 @@ public class StockDay {
      * @param stocksMap
      */
     public void userCanBuy(double money, HashMap<Integer, Object[]> stocksMap) {
+        DisplayUtils.printUserCanBuyHeader(money);
         for (Stock stock : stocks) {
             if (stock.course <= money) {
                 int maxQuantity = (int) (money / stock.course);
-                System.out.println("You can buy " + stocksMap.get(stock.ID)[1].toString() + " for " + stock.course + "$ each. Maximum quantity: " + maxQuantity);
+                String stockAbbr = stocksMap.get(stock.ID)[0].toString();
+                String stockName = stocksMap.get(stock.ID)[1].toString();
+                DisplayUtils.displayUserCanBuyStock(stock.ID, stockAbbr, stockName, maxQuantity, stock.course);
             }
         }
     }

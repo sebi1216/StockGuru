@@ -120,13 +120,12 @@ public class StockGuru {
         while (day <= days) {
             DisplayUtils.displayDay(day);
             updateStockData();
-            beginOfDay(user);
+            showStocks(user, 0);
 
             if (user instanceof Bot) {
                 Bot bot = (Bot) user;
                 bot.autoTrade(stockDaysAll, actionLogs, day, stocksMap);
             } else {
-                user.evaluateSellOptions(today, actionLogs, stocksMap, day);
                 chooseStock(user);
             }
             day++;
@@ -171,16 +170,24 @@ public class StockGuru {
      * Displays the beginning of the day data for the user.
      * It shows the stock details, including course, volume, and performance metrics.
      * @param user The user object representing the current user.
+     * @param case 0 begin of Day meaning all Stocks => 1 User Portfolio Data only the Stocks he owns
      */
-    public static void beginOfDay(User user) {
-        System.out.println("New Day Data is being loaded...");
-        System.out.println("Data loaded!");
-        DisplayUtils.displayPortfolioHeader(user, day, today);
+    public static void showStocks(User user, int type) {
+        if (type == 0) {
+            DisplayUtils.displayStocksHeader(user, day, today);
+        } else {
+            if (user.getStockPortfolio().isEmpty()) {
+                DisplayUtils.portfolioEmptyMessage();
+                return;
+            }
+            DisplayUtils.displayPortfolioHeader(user, day, today);
+        }
 
         StockDay stocksYesterday = stockDaysAll.getStockDay(day - 1);
         for (Stock stock : today.getStocks()) {
             int stockID = stock.getID();
             int userStockAmount = user.getStockPortfolio().getOrDefault(stockID, 0);
+            if (type == 1 && userStockAmount == 0) continue;
             String stockAbbr = stocksMap.get(stockID)[0].toString();
             String stockName = stocksMap.get(stockID)[1].toString();
             double stockCourse = stock.getCourse();
@@ -208,7 +215,7 @@ public class StockGuru {
      */
     public static void updateStockData() {
         StockDay stockDay = new StockDay(day);
-
+        System.out.println("New Day Data is being loaded...");
         try {
             List<String> stockFiles = Files.list(Paths.get(STOCKS_DIR))
                     .filter(Files::isRegularFile)
@@ -243,6 +250,7 @@ public class StockGuru {
         }
         stockDaysAll.addStockDay(stockDay);
         today = stockDay;
+        System.out.println("Data loaded!");
     }
 
     /**
@@ -257,6 +265,7 @@ public class StockGuru {
         if (user.getMoney() > 0) {
             validInputs.add(new Object[]{"Buy Stock", (Runnable) () -> buyStock(user)});
         }
+        validInputs.add(new Object[]{"Show my Portfolio", (Runnable) () -> showStocks(user, 1)});
         validInputs.add(new Object[]{"Show all Stocks I could buy", (Runnable) () -> today.userCanBuy(user.getMoney(), stocksMap)});
         if (!user.getStockPortfolio().isEmpty()) {
             validInputs.add(new Object[]{"Sell Stock Options", (Runnable) () -> sellStockOptions(user)});
@@ -314,6 +323,7 @@ public class StockGuru {
      * @param user The user object representing the current user.
      */
     public static void sellStockOptions(User user) {
+        user.evaluateSellOptions(today, actionLogs, stocksMap, day);
         DisplayUtils.displaySellOptions();
 
         int choice = Integer.parseInt(getInput(1, List.of("1", "2")));

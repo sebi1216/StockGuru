@@ -83,16 +83,40 @@ public class DisplayUtils {
     }
 
     /**
+     * Displays the portfolio header which is displayed at the beginning of the day
+     * @param user
+     * @param day
+     * @param today
+     */
+    public static void displayStocksHeader(User user, int day, StockDay today) {
+        displaySeparator();
+        outputHandler.println("Todays Stock Market:");
+        outputHandler.printf("%-77s | %-65s %n", "Available Stocks    |    Day: " + day, "Portfolio of " + user.getUsername() + " | Balance: " + user.getMoney() + "$" + " | Total Value: " + String.format("%.2f", user.getInvestedValue(today)) + "$");
+        outputHandler.printf("%-5s %-5s %-30s %-9s %-13s %-10s | %-7s %-10s %-11s %-7s%n", "ID", "Abbr.", "Name", "Course", "Volume", "Diff"     , "Amount", "Value", "Avg. Entry", "Profit");
+        outputHandler.printf("%-5s %-5s %-30s %-9s %-13s %-10s | %-7s %-10s %-11s %-7s%n", ""  , ""     , ""    , ""      , "Total" , "Yesterday", ""      , ""     , ""          , "Total");
+        displaySeparator();
+    }
+
+    /**
      * Displays the portfolio header.
      * @param user
      * @param day
      * @param today
      */
     public static void displayPortfolioHeader(User user, int day, StockDay today) {
+        displaySeparator();
+        outputHandler.println("Your Stocks:");
         outputHandler.printf("%-77s | %-65s %n", "Available Stocks    |    Day: " + day, "Portfolio of " + user.getUsername() + " | Balance: " + user.getMoney() + "$" + " | Total Value: " + String.format("%.2f", user.getInvestedValue(today)) + "$");
         outputHandler.printf("%-5s %-5s %-30s %-9s %-13s %-10s | %-7s %-10s %-11s %-7s%n", "ID", "Abbr.", "Name", "Course", "Volume", "Diff"     , "Amount", "Value", "Avg. Entry", "Profit");
         outputHandler.printf("%-5s %-5s %-30s %-9s %-13s %-10s | %-7s %-10s %-11s %-7s%n", ""  , ""     , ""    , ""      , "Total" , "Yesterday", ""      , ""     , ""          , "Total");
         displaySeparator();
+    }
+
+    /**
+     * Displays a message indicating that the portfolio is empty.
+     */
+    public static void portfolioEmptyMessage() {
+        outputHandler.println("Your portfolio is empty! You should first buy some Stocks.");
     }
 
     /**
@@ -121,6 +145,64 @@ public class DisplayUtils {
         // Output
         outputHandler.printf( "%-5s %-5s %-30s %-10s %-13d %-18s | %-7s %-10s %-11s %-7s %-7s%n", 
             stockID, stockAbbr, stockName, stockCourseString, stockVolume, perStockChangeStr, userStockAmountStr, userStockValueStr, userStockAvgEntryPrice, userProfitAmount, userProfitAmountPer
+        );
+    }
+
+    /**
+     * Prints the header for the sell options.
+     */
+    public static void printSellOptionsHeader(){
+        displaySeparator();
+        outputHandler.println("Sell options for your stocks:");
+        outputHandler.printf("%-5s %-5s %-30s %-10s %-10s %-7s%n", "ID", "Abbr.", "Name", "Amount", "Price", "Profit");
+        displaySeparator();
+    }
+
+    /**
+     * Displays the stock details of the available stocks.
+     * @param stockID
+     * @param stockAbbr
+     * @param stockName
+     * @param userStockAmount
+     * @param stockCourse
+     * @param perStockChange
+     */
+    public static void displaySellDetailsOptions(int stockID, String stockAbbr, String stockName, int userStockAmount, double stockCourse, double profitAmount, double profitPercentage) {
+        // String Formatting
+        String stockCourseString = String.format("%.2f$", stockCourse);
+        String userStockAmountStr = userStockAmount == 0 ? "" : String.valueOf(userStockAmount);
+        String userProfitAmount = userStockAmount == 0 ? "" : (profitAmount >= 0 ? "\u001B[32m+" + String.format("%.2f$", profitAmount) + "\u001B[0m" : "\u001B[31m" + String.format("%.2f$", profitAmount) + "\u001B[0m");
+        String userProfitAmountPer = (profitPercentage >= 0 ? "\u001B[32m" + String.format("%.2f%%", profitPercentage) + "\u001B[0m" : "\u001B[31m" + String.format("%.2f%%", profitPercentage) + "\u001B[0m");
+        // Output
+        outputHandler.printf( "%-5s %-5s %-30s %-10s %-10s %-7s %-7s%n", 
+            stockID, stockAbbr, stockName, userStockAmountStr, stockCourseString, userProfitAmount, userProfitAmountPer
+        );
+    }
+
+    /**
+     * Prints the header for the User can buy.
+     */
+    public static void printUserCanBuyHeader(double money) {
+        displaySeparator();
+        outputHandler.println("With your Money: " + money + "$ you can buy:");
+        outputHandler.printf("%-5s %-5s %-30s %-7s %-10s %n", "ID", "Abbr.", "Name", "Max", "Price");
+        displaySeparator();
+    }
+
+    /**
+     * Displays the stock details of the available stocks that the user can buy.
+     * @param stockID
+     * @param stockAbbr
+     * @param stockName
+     * @param maxAmount
+     * @param stockCourse
+     */
+    public static void displayUserCanBuyStock (int stockID, String stockAbbr, String stockName, int maxAmount, double stockCourse) {
+        // String Formatting
+        String stockCourseString = String.format("%.2f$", stockCourse);
+        // Output
+        outputHandler.printf( "%-5s %-5s %-30s %-7s %-10s %n", 
+            stockID, stockAbbr, stockName, maxAmount, stockCourseString
         );
     }
 
