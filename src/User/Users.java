@@ -3,6 +3,7 @@ import java.util.ArrayList;
 
 public class Users {
     private ArrayList<User> users;
+    private static int currentID = 0;
 
     /**
      * * Constructor for the Users class.
@@ -18,7 +19,8 @@ public class Users {
      * @param username
      */
     public void createTrader(String username) {
-        Trader trader = new Trader(getHighestID(), username);
+        int ID = currentID++;
+        Trader trader = new Trader(ID, username);
         users.add(trader);
     }
 
@@ -29,22 +31,9 @@ public class Users {
      * @param maxSharesPercentage
      */
     public void createBot(String username, int maxSharesPercentage) {
-        Bot bot = new Bot(getHighestID(), username, maxSharesPercentage);
+        int ID = currentID++;
+        Bot bot = new Bot(ID, username, maxSharesPercentage);
         users.add(bot);
-    }
-
-    /**
-     * Returns a new ID that is one higher than the highest ID in the list of users.
-     * @return int
-     */
-    public int getHighestID() {
-        int highestID = 0;
-        for (User user : users) {
-            if (user.getID() > highestID) {
-                highestID = user.getID();
-            }
-        }
-        return highestID + 1; 
     }
 
     /**

@@ -74,7 +74,7 @@ public abstract class User {
             } else {
                 stockPortfolio.put(stockID, amount);
             }
-            actionLogs.addLog(ID, day, stockID, amount, course);
+            actionLogs.addLog(day, stockID, amount, course);
             DisplayUtils.buyStockMessage(name, amount, course, money);
             stock.setVolume(stock.getVolume() - amount);
         }
@@ -96,7 +96,7 @@ public abstract class User {
         if (stockPortfolio.containsKey(stockID) && stockPortfolio.get(stockID) >= amount) {
             money += amount * course;
             stockPortfolio.put(stockID, stockPortfolio.get(stockID) - amount);
-            actionLogs.addLog(ID, day, stockID, amount * -1, course);
+            actionLogs.addLog(day, stockID, amount * -1, course);
             DisplayUtils.sellStockMessage(name, amount, course, money);
             stock.setVolume(stock.getVolume() + amount);
         }

@@ -3,6 +3,7 @@ import java.util.ArrayList;
 
 public class ActionLogs {
     ArrayList<BuySellLog> BuySellLogs = new ArrayList<BuySellLog>();
+    private static int currentID = 0;
 
     /**
      * Constructor for the ActionLogs class.
@@ -14,9 +15,13 @@ public class ActionLogs {
 
     /**
      * Adds an ActionLog to the list of ActionLogs.
-     * @param log
+     * @param day
+     * @param stockID
+     * @param amount
+     * @param course
      */
-    public void addLog(int ID, int day, int stockID, int amount, double course) {
+    public void addLog(int day, int stockID, int amount, double course) {
+        int ID = currentID++;
         BuySellLog log = new BuySellLog(ID, day, stockID, amount, course);
         if (log != null) {
             BuySellLogs.add(log);
@@ -24,7 +29,7 @@ public class ActionLogs {
     }
 
     /**
-     * Gets the Avgerage Entry Price for a given user and stock.
+     * Gets the Average Entry Price for a given user and stock.
      * @param userID
      * @param stockID
      * @param day
@@ -36,10 +41,9 @@ public class ActionLogs {
         for (BuySellLog log : BuySellLogs) {
             if (log.userID == userID && log.stockID == stockID && log.day <= day) {
                 sum += (log.course * log.amount);
-                count+= log.amount;
+                count += log.amount;
             }
         }
         return sum / count;
     }
-
 }

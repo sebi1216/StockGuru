@@ -1,15 +1,15 @@
 package Stocks;
-import java.util.ArrayList;
+import java.util.HashMap;
 
 public class StockDaysAll {
-    ArrayList<StockDay> stockDays = new ArrayList<StockDay>();
+    HashMap<Integer, StockDay> stockDays = new HashMap<Integer, StockDay>();
 
     /**
      * * Constructor for the StockDaysAll class.
      * * Initializes an empty list of StockDays.
      */
     public StockDaysAll() {
-        this.stockDays = new ArrayList<>();
+        this.stockDays = new HashMap<Integer, StockDay>();
     }
 
     /**
@@ -18,7 +18,9 @@ public class StockDaysAll {
      */
     public void addStockDay(StockDay stockDay) {
         if (stockDay != null) {
-            stockDays.add(stockDay);
+            stockDays.put(stockDay.day, stockDay);
+        } else {
+            System.out.println("StockDay is null. Cannot add to list.");
         }
     }
 
@@ -28,12 +30,11 @@ public class StockDaysAll {
      * @return StockDay or null if not found
      */
     public StockDay getStockDay(int day) {
-        for (StockDay stockDay : stockDays) {
-            if (stockDay.day == day) {
-                return stockDay;
-            }
+        if (stockDays.containsKey(day)) {
+            return stockDays.get(day);
+        } else {
+            System.out.println("StockDay not found for day: " + day);
         }
         return null;
     }
-    
 }
