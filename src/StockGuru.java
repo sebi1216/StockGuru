@@ -27,7 +27,7 @@ public class StockGuru {
 
     final static int days = 10;
     static int day = 0;
-    static StockDay today = stockDaysAll.getStockDay(day);
+    static StockDay today;
 
     private static final String NAMINGS_FILE = "lib/Namings.csv";
     private static final String STOCKS_DIR = "lib/Stocks/";
@@ -41,24 +41,25 @@ public class StockGuru {
      */
     public static void main( String[] args) {
         DisplayUtils.welcomeMessage();
-        initial();
 
-        DisplayUtils.askUserName();
-        String username = getInput(0, null);
-        DisplayUtils.greetUser(username);
-        Trader trader = users.createTrader(username);
-        ActionLogs.addUserLog(trader.getID(), day, "Trader created");
+        Thread initThread = new Thread(() -> initial());
+        initThread.start();
+
+        determineLanguage();
+
+        Trader trader = createTrader();
 
         DisplayUtils.askUserType();
         String userType = getInput(0, List.of("Trader", "Bot"));
 
+        try {
+            initThread.join();
+        } catch (InterruptedException e) {
+            System.err.println("Initialization thread interrupted: " + e.getMessage());
+        }
+
         if (userType.equals("Bot")) {
-            DisplayUtils.askBotName();
-            username = getInput(0, null);
-            DisplayUtils.askMaxSharesPercentage();
-            int maxSharesPercentage = Integer.parseInt(getInput(1, null));
-            Bot bot = users.createBot(username, maxSharesPercentage);
-            ActionLogs.addUserLog(bot.getID(), day, "Bot created");
+            Bot bot = createBot();
             start(bot);
             endInfo(bot);
         } else {
@@ -77,6 +78,46 @@ public class StockGuru {
     }
 
     /**
+     * Creates a Bot object and prompts the user for their name and max shares percentage.
+     * It also logs the creation of the bot in the action logs.
+     * @return The created Bot object.
+     */
+    private static Bot createBot() {
+        DisplayUtils.askBotName();
+        String username = getInput(0, null);
+        DisplayUtils.askMaxSharesPercentage();
+        int maxSharesPercentage = Integer.parseInt(getInput(1, null));
+        Bot bot = users.createBot(username, maxSharesPercentage);
+        ActionLogs.addUserLog(bot.getID(), day, "Bot created");
+        return bot;
+    }
+
+    /**
+     * Creates a Trader object and prompts the user for their name.
+     * It also logs the creation of the trader in the action logs.
+     * @return The created Trader object.
+     */
+    private static Trader createTrader() {
+        DisplayUtils.askUserName();
+        String username = getInput(0, null);
+        DisplayUtils.greetUser(username);
+        Trader trader = users.createTrader(username);
+        ActionLogs.addUserLog(trader.getID(), day, "Trader created");
+        return trader;
+    }
+
+    /**
+     * Determines the language for the application by prompting the user.
+     * It sets the language based on the user's choice (English or German).
+     */
+    private static void determineLanguage() {
+        DisplayUtils.askLanguage();
+        String language = getInput(0, List.of("English", "German"));
+        int languageIdx = language.equals("English") ? 0 : 1;
+        DisplayUtils.setLanguage(languageIdx);
+    }
+
+    /**
      * Resets the application state by reinitializing variables and clearing maps.
      * This method is called when the user chooses to restart the application.
      */
@@ -87,7 +128,7 @@ public class StockGuru {
         abbrMap.clear();
         users = new Users();
         day = 0;
-        today = stockDaysAll.getStockDay(day);
+        today = new StockDay(-1);
     }
 
     /**
@@ -121,17 +162,22 @@ public class StockGuru {
         while (day <= days) {
             DisplayUtils.displayDay(day);
             updateStockData();
+            Map<String, List<Stock>> stocks = stockDaysAll.getBestStocks(day, user.getMoney());
+            if (!stocks.isEmpty() ) {
+                List<Stock> bestPerforming = stocks.get("bestPerformingStocks");
+                List<Stock> undervalued = stocks.get("undervaluedStocks");
+                DisplayUtils.displayBestPerformingStocks(bestPerforming, undervalued, stocksMap);
+            }
             showStocks(user, 0);
 
             if (user instanceof Bot) {
                 Bot bot = (Bot) user;
                 bot.autoTrade(stockDaysAll, actionLogs, day, stocksMap);
             } else {
-                chooseStock(user);
+                userAction(user);
             }
             day++;
         }
-        System.out.println("There is no more data available!");
     }
 
     /**
@@ -277,7 +323,9 @@ public class StockGuru {
             }
         
             double profitPercentage = userStockAmount == 0 || avgEntryPrice == 0 ? 0 : ((stockCourse - avgEntryPrice) / avgEntryPrice) * 100;
-            DisplayUtils.displayStockDetails(stockID, stockAbbr, stockName, stockCourse, (int) stockVolume, perStockChange, userStockAmount, avgEntryPrice, profitAmount, profitPercentage);
+            String noteText = user.getNote(stockID);
+            if (noteText == null) {noteText = "";}
+            DisplayUtils.displayStockDetails(stockID, stockAbbr, stockName, stockCourse, (int) stockVolume, perStockChange, userStockAmount, avgEntryPrice, profitAmount, profitPercentage, noteText);
         }
         DisplayUtils.displaySeparator();
     }
@@ -331,7 +379,7 @@ public class StockGuru {
      * It allows the user to choose between buying stocks, showing available stocks, selling stock options, or ending the day.
      * @param user The user object representing the current user.
      */
-    public static void chooseStock(User user) {
+    public static void userAction(User user) {
         ArrayList<Object[]> validInputs = new ArrayList<>();
         DisplayUtils.askUserAction();
 
@@ -343,6 +391,11 @@ public class StockGuru {
         if (!user.getStockPortfolio().isEmpty()) {
             validInputs.add(new Object[]{"Sell Stock Options", (Runnable) () -> sellStockOptions(user)});
         }
+        if (day > 0) {
+            validInputs.add(new Object[]{"Show History", (Runnable) () -> actionLogs.showHistory()});
+        }
+        validInputs.add(new Object[]{"Add Note", (Runnable) () -> addNote(user)});
+        validInputs.add(new Object[]{"Auto Trade for Trade", (Runnable) () -> user.autoTrade()});
         validInputs.add(new Object[]{"End Day", (Runnable) DisplayUtils::endingDayMessage});
 
         List<String> validChoices = new ArrayList<>();
@@ -356,8 +409,23 @@ public class StockGuru {
         Runnable action = (Runnable) validInputs.get(choice - 1)[1];
         action.run();
         if (choice != validInputs.size()) {
-            chooseStock(user);
+            userAction(user);
         }
+    }
+
+    /**
+     * Adds a note to the user's stock portfolio.
+     */
+    public static void addNote(User user) {
+        DisplayUtils.askStockToAddNote();
+        List<String> ownedStockIDs = user.getStockPortfolio().keySet().stream().map(String::valueOf).collect(Collectors.toList());
+        ownedStockIDs.add("-1");
+        ownedStockIDs.add("0");
+        int stockID = Integer.parseInt(getInput(1, ownedStockIDs));
+        String stockName = stocksMap.get(stockID)[1].toString();
+        DisplayUtils.askNoteText(stockName);
+        String noteText = getInput(0, null);
+        user.addNote(noteText, day, stockID);
     }
 
     /**

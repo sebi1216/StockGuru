@@ -1,9 +1,11 @@
 package Logs;
 import java.util.ArrayList;
 
+import DisplayUtils.DisplayUtils;
+
 public class ActionLogs {
-    static ArrayList<BuySellLog> BuySellLogs = new ArrayList<BuySellLog>();
-    static ArrayList<UserLog> UserLogs = new ArrayList<UserLog>();
+    static ArrayList<BuySellLog> BuySellLogs;
+    static ArrayList<UserLog> UserLogs;
     private static int currentBSID = 0;
     private static int currentUID = 0;
 
@@ -12,7 +14,8 @@ public class ActionLogs {
      * Initializes an empty list of ActionLogs.
      */
     public ActionLogs() {
-        this.BuySellLogs = new ArrayList<>();
+        ActionLogs.BuySellLogs = new ArrayList<>();
+        ActionLogs.UserLogs = new ArrayList<>();
     }
 
     /**
@@ -77,6 +80,25 @@ public class ActionLogs {
             }
         }
         return sum / count;
+    }
+
+    /**
+     * Displays the History of all Logs.
+     */
+    public void showHistory() {
+        DisplayUtils.displaySeparator();
+        DisplayUtils.displayBuySellLogHeader();
+        for (BuySellLog log : BuySellLogs) {
+            DisplayUtils.displayHistoryBuySellLog(log);
+        }
+
+        DisplayUtils.displaySeparator();
+        DisplayUtils.displayUserLogHeader();
+        for (UserLog log : UserLogs) {
+            DisplayUtils.displayHistoryUserLog(log);
+        }
+
+        DisplayUtils.displaySeparator();
     }
 
     /**

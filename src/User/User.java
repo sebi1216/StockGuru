@@ -4,14 +4,17 @@ import java.util.Map;
 
 import DisplayUtils.DisplayUtils;
 import Logs.ActionLogs;
+import Notes.Notes;
 import Stocks.Stock;
 import Stocks.StockDay;
+import Stocks.StockDaysAll;
 
 public abstract class User {
     int ID;
     String username;
     int money = 1000;
     HashMap<Integer, Integer> stockPortfolio = new HashMap<Integer, Integer>(); // stockID, amount
+    Notes notes = new Notes();
 
     /**
      * * Constructor for the User class.
@@ -120,6 +123,7 @@ public abstract class User {
             String stockName = stocksMap.get(stockID)[1].toString();
             sellStock(stock, stockName, stockPortfolio.get(stockID), actionLogs, day);
         }
+        DisplayUtils.allStocksSold(money);
         System.out.println("All stocks sold new Balance: " + money + "$");
     }
 
@@ -144,7 +148,9 @@ public abstract class User {
         
                 double profitPercentage = ((currentPrice - avgEntryPrice) / avgEntryPrice) * 100;
                 double profitAmount = (currentPrice - avgEntryPrice) * stockAmount;
-                DisplayUtils.displaySellDetailsOptions(stock.getID(), stockAbbr, stockName, stockAmount, currentPrice, profitAmount, profitPercentage);
+                String noteText = notes.getNote(stockID);
+                if (noteText == null) {noteText = "";}
+                DisplayUtils.displaySellDetailsOptions(stock.getID(), stockAbbr, stockName, stockAmount, currentPrice, profitAmount, profitPercentage, noteText);
             }
         }
         DisplayUtils.displaySeparator();
@@ -180,6 +186,31 @@ public abstract class User {
         totalValue += getInvestedValue(today); // Add the current value of the portfolio
         totalValue += money; // Add the remaining cash in the account
         return totalValue;
+    }
+
+    /**
+     * Adds a note to the stock.
+     * @param noteText
+     * @param day
+     * @param stockID
+     */
+    public void addNote (String noteText, int day, int stockID) {
+        notes.addNote(noteText, day, stockID);
+    }
+
+    /**
+     * Get the Note for a StockID
+     * @param StockID
+     */
+    public String getNote (int StockID) {
+        return notes.getNote(StockID);
+    }
+
+    /**
+     * Trades for the User.
+     */
+    public static void autoTrade(StockDaysAll stockDaysAll){
+        // SIB
     }
 
     @Override
