@@ -78,3 +78,10 @@ StockGuru/
 ## License
 
 This project is developed as part of the DHBW Programming Project by Sebastian Schierholz. All rights reserved.
+
+
+## Fragen
+
+Tag 0 ist dies der Start Tag / Soll dieser angezeigt werden
+Course: Ist der Course immer der Endkurs, bedeutet wir kaufen zu dem Course vom Vortag?
+
