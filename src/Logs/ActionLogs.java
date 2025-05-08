@@ -74,12 +74,12 @@ public class ActionLogs {
         double sum = 0;
         int count = 0;
         for (BuySellLog log : BuySellLogs) {
-            if (log.userID == userID && log.stockID == stockID && log.day <= day) {
+            if (log.userID == userID && log.stockID == stockID && log.day <= day && log.amount > 0) {
                 sum += (log.course * log.amount);
                 count += log.amount;
             }
         }
-        return sum / count;
+        return count > 0 ? sum / count : 0; // Avoid division by zero
     }
 
     /**

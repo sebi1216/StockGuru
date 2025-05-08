@@ -3,6 +3,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import DisplayUtils.DisplayUtils;
+import User.User;
+import User.Users;
 
 public class StockDay {
     int day;
@@ -53,14 +55,16 @@ public class StockDay {
      * @param money
      * @param stocksMap
      */
-    public void userCanBuy(double money, HashMap<Integer, Object[]> stocksMap) {
+    public void userCanBuy(User user, HashMap<Integer, Object[]> stocksMap) {
+        int money = user.getMoney();
         DisplayUtils.printUserCanBuyHeader(money);
         for (Stock stock : stocks) {
             if (stock.course <= money) {
                 int maxQuantity = (int) (money / stock.course);
                 String stockAbbr = stocksMap.get(stock.ID)[0].toString();
                 String stockName = stocksMap.get(stock.ID)[1].toString();
-                DisplayUtils.displayUserCanBuyStock(stock.ID, stockAbbr, stockName, maxQuantity, stock.course);
+                String stockNote = user.getNote(stock.ID);
+                DisplayUtils.displayUserCanBuyStock(stock.ID, stockAbbr, stockName, maxQuantity, stock.course, stockNote);
             }
         }
     }

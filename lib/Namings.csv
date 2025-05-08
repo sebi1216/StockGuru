@@ -9,7 +9,7 @@ BMW;BMW AG St
 BNR;Brenntag SE
 CBK;Commerzbank AG
 CON1;Continental AG
-DB1;Deutsche BÔøΩrse AG
+DB1;Deutsche Bîrse AG
 DBK;Deutsche Bank AG
 DHL;Deutsche Post AG
 DTE;Deutsche Telekom AG
@@ -20,12 +20,12 @@ FME;Fresenius Medical Care AG
 FRE;Fresenius SE & Co. KGaA
 HEI;Heidelberg Materials AG
 HEN3;Henkel AG & Co. KGaA Vz
-HNR1;Hannover RÔøΩck SE
+HNR1;Hannover RÅck SE
 IFX;Infineon Technologies AG
 MBG;Mercedes Benz Group AG 
 MRK;Merck KGaA
 MTX;MTU Aero Engines AG
-MUV2;MÔøΩnchener RÔøΩck AG
+MUV2;MÅnchener RÅck AG
 P911;Porsche AG Vz
 PAH3;Porsche Automobil Holding SE
 QIA;Qiagen N.V.
@@ -39,3 +39,4 @@ SY1;Symrise AG
 VNA;Vonovia SE
 VOW3;Volkswagen AG Vz
 ZAL;Zalando SE (DE)
+^GDAXI;DAX Deutschland

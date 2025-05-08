@@ -1,5 +1,6 @@
 package DisplayUtils;
 
+import java.lang.reflect.Array;
 import java.util.HashMap;
 import java.util.List;
 
@@ -125,18 +126,6 @@ public class DisplayUtils {
     }
     
     /**
-     * Displays total profit.
-     * @param totalProfit
-     */
-    public static void displayTotalProfit(double totalProfit) {
-        if (languageIdx == 0) {
-            outputHandler.printf("The Total Profit is: %.2f$!%n", totalProfit);
-        } else {
-            outputHandler.printf("Der Gesamtgewinn beträgt: %.2f$!%n", totalProfit);
-        }
-    }
-    
-    /**
      * Displays the result grade along with total profit and percentage profit.
      * The grade changes color based on its value (1 is green, 6 is red, with a gradient in between).
      * @param totalProfit The total profit made by the user.
@@ -192,7 +181,7 @@ public class DisplayUtils {
     
         if (languageIdx == 0) { // English
             outputHandler.printf("%-5s %-5s %-30s %-9s %-13s %-10s | %-7s %-10s %-11s %-14s %-10s%n",
-                "ID", "Abbr.", "Name", "Course", "Volume", "Diff", "Amount", "Value", "Avg. Entry", "Profit", "Notes");
+                "ID", "Abbr.", "Name", "Course", "Volume", "Diff", "Amount", "Value", "Avg. Entry", "Profit", "Note");
             outputHandler.printf("%-5s %-5s %-30s %-9s %-13s %-10s | %-7s %-10s %-11s %-7s %-10s%n",
                 "", "", "", "", "Total", "Yesterday", "", "", "", "Total", "");
         } else { // Deutsch
@@ -397,18 +386,6 @@ public class DisplayUtils {
     }
     
     /**
-     * Displays day.
-     * @param day
-     */
-    public static void displayDay(int day) {
-        if (languageIdx == 0) {
-            outputHandler.println("Day: " + day);
-        } else {
-            outputHandler.println("Tag: " + day);
-        }
-    }
-    
-    /**
      * Ending day message.
      */
     public static void endingDayMessage() {
@@ -539,9 +516,9 @@ public class DisplayUtils {
      */
     public static void askUserAction() {
         if (languageIdx == 0) {
-            outputHandler.println("What would you like to do?");
+            outputHandler.println("What would you like to do? (Number of the action)");
         } else {
-            outputHandler.println("Was möchten Sie tun?");
+            outputHandler.println("Was möchten Sie tun? (Nummer der Aktion)");
         }
     }
     
@@ -607,9 +584,9 @@ public class DisplayUtils {
      */
     public static void askStockToAddNote() {
         if (languageIdx == 0) {
-            outputHandler.println("Enter the ID of the stock you want to add a note to:");
+            outputHandler.println("Enter the ID of the stock you want to add a note to (0 to leave):");
         } else {
-            outputHandler.println("Geben Sie die ID der Aktie ein, zu der Sie eine Notiz hinzufügen möchten:");
+            outputHandler.println("Geben Sie die ID der Aktie ein, zu der Sie eine Notiz hinzufügen möchten (0 zum verlassen):");
         }
     }
 
@@ -641,7 +618,6 @@ public class DisplayUtils {
      * @param log
      */
     public static void displayHistoryBuySellLog(BuySellLog log) {
-        displayBuySellLogHeader();
         if (languageIdx == 0) {
             outputHandler.printf("%-10d %-5d %-8d %-8d %-10.2f$%n", 
                 log.getUserID(), log.getDay(), log.getStockID(), log.getAmount(), log.getCourse());
@@ -667,7 +643,6 @@ public class DisplayUtils {
      * @param log
      */
     public static void displayHistoryUserLog(UserLog log) {
-        displayUserLogHeader();
         if (languageIdx == 0) {
             outputHandler.printf("%-10d %-5d %-8d %-20s%n", 
                 log.getLogID(), log.getDay(), log.getUserID(), log.getAction());
@@ -683,13 +658,15 @@ public class DisplayUtils {
      * @param undervalued
      * @param stocksMap
      */
-    public static void displayBestPerformingStocks(List<Stock> bestPerforming, List<Stock> undervalued, HashMap<Integer, Object[]> stocksMap) {
+    public static void displayBestPerformingStocks(List<Stock> bestPerforming, List<Stock> undervalued, HashMap<Integer, Object[]> stocksMap, int day) {
         
         if (languageIdx == 0) {
-            outputHandler.println ("Stocks of the Day:");
+            outputHandler.println ("-------------------------- Stocks of the Day: " + day + " --------------------------");
+            outputHandler.println("We will display the Stocks only if you would be able to buy them else this will be empty.");
             outputHandler.println("Best Performing Stocks:");
         } else {
-            outputHandler.println ("Aktien des Tages:");
+            outputHandler.println ("-------------------------- Aktien des Tages: " + day + " --------------------------");
+            outputHandler.println("Wir zeigen die Aktien nur an, wenn Sie sie kaufen könnten, sonst bleibt dies leer.");
             outputHandler.println("Beste Aktien:");
         }
 
@@ -733,6 +710,22 @@ public class DisplayUtils {
             outputHandler.println("All stocks sold! New Balance: " + money + "$");
         } else {
             outputHandler.println("Alle Aktien verkauft! Neuer Kontostand: " + money + "$");
+        }
+    }
+
+    public static String[] selectionText() {
+        if (languageIdx == 0) {
+            return new String[] {"Buy Stocks", "Show my Portfolio", "Show all Stocks I could buy", "Sell Stock Options", "Show History", "Add Note", "Auto Trade", "End Day"};
+        } else {
+            return new String[] {"Aktien kaufen", "Mein Portfolio anzeigen", "Alle Aktien anzeigen, die ich kaufen könnte", "Verkaufsoptionen anzeigen", "Verlauf anzeigen", "Notiz hinzufügen", "Automatischer Handel", "Tag beenden"};
+        }
+    }
+
+    public static void askStockToBuy() {
+        if (languageIdx == 0) {
+            outputHandler.println("Which Stock would you like to buy? (Enter ID)");
+        } else {
+            outputHandler.println("Welche Aktie möchten Sie kaufen? (ID eingeben)");
         }
     }
 }

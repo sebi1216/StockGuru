@@ -159,14 +159,15 @@ public class StockGuru {
      * @param user The user object representing the current user.
      */
     public static void start(User user ) {
+        updateStockData(); // Load the first day data
+        day++;
         while (day <= days) {
-            DisplayUtils.displayDay(day);
             updateStockData();
             Map<String, List<Stock>> stocks = stockDaysAll.getBestStocks(day, user.getMoney());
             if (!stocks.isEmpty() ) {
                 List<Stock> bestPerforming = stocks.get("bestPerformingStocks");
                 List<Stock> undervalued = stocks.get("undervaluedStocks");
-                DisplayUtils.displayBestPerformingStocks(bestPerforming, undervalued, stocksMap);
+                DisplayUtils.displayBestPerformingStocks(bestPerforming, undervalued, stocksMap, day);
             }
             showStocks(user, 0);
 
@@ -188,7 +189,6 @@ public class StockGuru {
         user.sellAllStocks(actionLogs, day, today, stocksMap);
         DisplayUtils.endOfGameMessage();
         displayBestPerformigStock();
-        showStocks(user, 1);
         displayResultGrade(user);
     }
 
@@ -233,15 +233,23 @@ public class StockGuru {
         int totalTrades = 0;
         int positiveTrades = 0;
     
-        ArrayList<BuySellLog> buySellLogs = ActionLogs.getBuySellLogs();
+        ArrayList<BuySellLog> buySellLogs = ActionLogs.getBuySellLogs();    
         for (BuySellLog log : buySellLogs) {
-            if (log.getAmount() < 0) {
-                double profit = -log.getAmount() * (log.getCourse() - actionLogs.getAvgEntryPrice(log.getUserID(), log.getStockID(), log.getDay()));
-                double percentageProfit = (profit / (log.getAmount() * log.getCourse())) * 100;
-
+            if (log.getAmount() < 0) { // Process only sell transactions
+                double avgEntryPrice = actionLogs.getAvgEntryPrice(log.getUserID(), log.getStockID(), log.getDay());
+                double course = log.getCourse();
+    
+                // Skip invalid logs
+                if (avgEntryPrice <= 0 || course <= 0) {
+                    continue;
+                }
+    
+                double profit = -log.getAmount() * (course - avgEntryPrice);
+                double percentageProfit = (profit / (-log.getAmount() * avgEntryPrice)) * 100;
+    
                 totalProfit += profit;
                 totalPercentageProfit += percentageProfit;
-
+    
                 totalTrades++;
                 if (profit > 0) {
                     positiveTrades++;
@@ -281,7 +289,6 @@ public class StockGuru {
         grade = Math.min(grade, 6);
     
         // Display results
-        DisplayUtils.displayTotalProfit(totalProfit);
         DisplayUtils.displayResultGrade(totalProfit, totalPercentageProfit, grade);
     }
 
@@ -381,22 +388,23 @@ public class StockGuru {
      */
     public static void userAction(User user) {
         ArrayList<Object[]> validInputs = new ArrayList<>();
+        String[] text = DisplayUtils.selectionText();
         DisplayUtils.askUserAction();
 
         if (user.getMoney() > 0) {
-            validInputs.add(new Object[]{"Buy Stock", (Runnable) () -> buyStock(user)});
+            validInputs.add(new Object[]{text[0], (Runnable) () -> buyStock(user)});
         }
-        validInputs.add(new Object[]{"Show my Portfolio", (Runnable) () -> showStocks(user, 1)});
-        validInputs.add(new Object[]{"Show all Stocks I could buy", (Runnable) () -> today.userCanBuy(user.getMoney(), stocksMap)});
+        validInputs.add(new Object[]{text[1], (Runnable) () -> showStocks(user, 1)});
+        validInputs.add(new Object[]{text[2], (Runnable) () -> today.userCanBuy(user, stocksMap)});
         if (!user.getStockPortfolio().isEmpty()) {
-            validInputs.add(new Object[]{"Sell Stock Options", (Runnable) () -> sellStockOptions(user)});
+            validInputs.add(new Object[]{text[3], (Runnable) () -> sellStockOptions(user)});
         }
         if (day > 0) {
-            validInputs.add(new Object[]{"Show History", (Runnable) () -> actionLogs.showHistory()});
+            validInputs.add(new Object[]{text[4], (Runnable) () -> actionLogs.showHistory()});
         }
-        validInputs.add(new Object[]{"Add Note", (Runnable) () -> addNote(user)});
-        validInputs.add(new Object[]{"Auto Trade for Trade", (Runnable) () -> user.autoTrade()});
-        validInputs.add(new Object[]{"End Day", (Runnable) DisplayUtils::endingDayMessage});
+        validInputs.add(new Object[]{text[5], (Runnable) () -> addNote(user)});
+        validInputs.add(new Object[]{text[6], (Runnable) () -> user.autoTrade(stockDaysAll, actionLogs, day, stocksMap)});
+        validInputs.add(new Object[]{text[7], (Runnable) DisplayUtils::endingDayMessage});
 
         List<String> validChoices = new ArrayList<>();
         for (int i = 0; i < validInputs.size(); i++) {
@@ -418,10 +426,12 @@ public class StockGuru {
      */
     public static void addNote(User user) {
         DisplayUtils.askStockToAddNote();
-        List<String> ownedStockIDs = user.getStockPortfolio().keySet().stream().map(String::valueOf).collect(Collectors.toList());
-        ownedStockIDs.add("-1");
+        List<String> ownedStockIDs = stocksMap.keySet().stream().map(String::valueOf).collect(Collectors.toList());
         ownedStockIDs.add("0");
         int stockID = Integer.parseInt(getInput(1, ownedStockIDs));
+        if (stockID == 0) {
+            return;
+        }
         String stockName = stocksMap.get(stockID)[1].toString();
         DisplayUtils.askNoteText(stockName);
         String noteText = getInput(0, null);
@@ -435,7 +445,7 @@ public class StockGuru {
      * @throws NumberFormatException if the input is not a valid integer.
      */
     public static void buyStock(User user) {
-        System.out.println("Which Stock would you like to buy? (Enter ID)");
+        DisplayUtils.askStockToBuy();
         int stockID = Integer.parseInt(getInput(1, stocksMap.keySet().stream().map(String::valueOf).collect(Collectors.toList())));
         Stock stockToBuy = today.getStock(stockID);
         double stockCourse = stockToBuy.getCourse();

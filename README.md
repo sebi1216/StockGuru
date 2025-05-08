@@ -45,6 +45,38 @@ StockGuru/
      java StockGuru
      ```
 
+## How to Insert Custom CSV Data
+
+To use your own stock data in the simulation, follow these steps:
+
+1. **Namings File**:
+   - Create a CSV file named `Namings.csv` in the `lib/` directory.
+   - This file should contain stock abbreviations and their full names in the following format:
+     ```
+     Abk;Name
+     ADS;adidas AG
+     AIR;Airbus SE
+     ```
+   - Each line represents a stock, where `Abk` is the abbreviation and `Name` is the full name.
+
+2. **Stock Data Files**:
+   - Place your stock data CSV files in the `lib/Stocks/` directory.
+   - Each file should be named using the stock abbreviation (e.g., `ADS.csv` for adidas AG).
+   - The file should contain daily stock data in the following format:
+     ```
+     Date;Endwert;Volumen
+     Tag 0;451.72;948003
+     Tag 1;470.58;1535096
+     ```
+   - `Date` is the day, `Endwert` is the closing price, and `Volumen` is the trading volume.
+
+3. **Ensure Consistency**:
+   - The abbreviations in `Namings.csv` must match the filenames of the stock data CSV files.
+   - For example, if `Namings.csv` contains `ADS`, there must be a corresponding `ADS.csv` in the `lib/Stocks/` directory.
+
+4. **Restart the Application**:
+   - After adding your custom CSV files, restart the application to load the new data.
+
 ## Gameplay
 
 1. **Start**:
@@ -78,10 +110,3 @@ StockGuru/
 ## License
 
 This project is developed as part of the DHBW Programming Project by Sebastian Schierholz. All rights reserved.
-
-
-## Fragen
-
-Tag 0 ist dies der Start Tag / Soll dieser angezeigt werden
-Course: Ist der Course immer der Endkurs, bedeutet wir kaufen zu dem Course vom Vortag?
-
